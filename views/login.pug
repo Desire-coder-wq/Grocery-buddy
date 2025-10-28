@@ -1,0 +1,42 @@
+meta(charset="UTF-8")
+meta(name="viewport", content="width=device-width,initial-scale=1")
+title Login | My Grocery Buddy
+link(
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css",
+  rel="stylesheet",
+  integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB",
+  crossorigin="anonymous"
+)
+link(rel="stylesheet", href="css/style.css")
+
+.container
+  .auth-card
+    h1.title My Grocery Buddy
+    h2 Welcome Back
+    form
+      .mb-3
+        input#disabledTextInput.form-control(
+          type="text",
+          placeholder="Email"
+        )
+      .mb-3
+        input#disabledTextInput.form-control(
+          type="text",
+          placeholder="Password"
+        )
+      .mb-3
+        .form-check
+          input.form-check-input#disabledFieldsetCheck(
+            type="checkbox",
+            disabled
+          )
+          label.form-check-label(for="disabledFieldsetCheck") 
+            | Can’t check this
+      button.btn.btn-primary(type="submit") Submit
+    .auth-footer
+      p
+        | Don't have an account? 
+        a(href="/register") Register here
+
+// Login JS
+script(src="/js/login.js")

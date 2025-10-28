@@ -1,0 +1,180 @@
+meta(charset="UTF-8")
+meta(name="viewport", content="width=device-width,initial-scale=1")
+title Register | My Grocery Buddy
+link(rel="stylesheet", href="/css/style.css")
+link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
+style.
+  
+  .input-wrapper {
+        position: relative;
+      }
+      
+      .input-wrapper input {
+        padding-left: 40px;
+      }
+      
+      .input-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        font-size: 16px;
+      }
+      
+      .title-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #4CAF50;
+      }
+      
+      .image-upload-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .image-upload-wrapper:hover {
+        border-color: #4CAF50;
+        background-color: #f9f9f9;
+      }
+      
+      .image-preview {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: none;
+        border: 2px solid #4CAF50;
+      }
+      
+      .image-preview.show {
+        display: block;
+      }
+      
+      .upload-placeholder {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #666;
+        flex: 1;
+      }
+      
+      .upload-placeholder i {
+        font-size: 1.5rem;
+        color: #4CAF50;
+      }
+      
+      .upload-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      
+      .upload-text span {
+        font-size: 0.95rem;
+        color: #333;
+      }
+      
+      .upload-text small {
+        color: #999;
+        font-size: 0.8rem;
+      }
+      
+      #profileImage {
+        display: none;
+      }
+      
+      .file-name {
+        font-size: 0.85rem;
+        color: #4CAF50;
+        font-weight: 500;
+      }
+  
+.container
+  .auth-card
+    i.fas.fa-shopping-cart.title-icon
+    h1.title My Grocery Buddy
+    h2 Create Account
+    form#registerForm
+      .form-group
+        label(for="username") Username
+        .input-wrapper
+          i.fas.fa-user.input-icon
+          input#username(type="text", name="username", required, minlength="3", placeholder="Choose a username")
+      .form-group
+        label(for="profileImage") Profile Picture (Optional)
+        label.image-upload-wrapper(for="profileImage")
+          img#imagePreview.image-preview(alt="Profile preview")
+          .upload-placeholder
+            i.fas.fa-camera
+            span Click to upload photo
+            small JPG, PNG or GIF (Max 5MB)
+          span#fileName.file-name
+        input#profileImage(type="file", name="profileImage", accept="image/jpeg,image/png,image/gif")
+      .form-group
+        label(for="email") Email
+        .input-wrapper
+          i.fas.fa-envelope.input-icon
+          input#email(type="email", name="email", required, placeholder="your@email.com")
+      .form-group
+        label(for="password") Password
+        .input-wrapper
+          i.fas.fa-lock.input-icon
+          input#password(type="password", name="password", required, minlength="6", placeholder="At least 6 characters")
+      .form-group
+        label(for="confirmPassword") Confirm Password
+        .input-wrapper
+          i.fas.fa-lock.input-icon
+          input#confirmPassword(type="password", name="confirmPassword", required, placeholder="Re-enter password")
+      p#errorMessage.error-message
+      button.btn.btn-primary(type="submit")
+        i.fas.fa-user-plus
+        |  Register
+
+    .auth-footer
+      p
+        | 
+Already have an account?
+
+        a(href="/login")
+          i.fas.fa-sign-in-alt
+          |  Login here
+script(src="/js/register.js")
+script.
+  
+  // Image upload preview functionality
+      const profileImageInput = document.getElementById('profileImage');
+      const imagePreview = document.getElementById('imagePreview');
+      const fileName = document.getElementById('fileName');
+      const uploadPlaceholder = document.querySelector('.upload-placeholder');
+  
+      profileImageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        
+        if (file) {
+          // Check file size (5MB limit)
+          if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            profileImageInput.value = '';
+            return;
+          }
+          
+          // Show preview
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            imagePreview.classList.add('show');
+            uploadPlaceholder.style.display = 'none';
+            fileName.textContent = file.name;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+  

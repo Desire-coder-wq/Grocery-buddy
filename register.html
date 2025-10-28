@@ -32,29 +32,28 @@
     
     .image-upload-wrapper {
       display: flex;
-      flex-direction: column;
       align-items: center;
       gap: 1rem;
-      padding: 1.5rem;
-      border: 2px dashed #ddd;
+      padding: 0.75rem 1rem;
+      border: 2px solid #ddd;
       border-radius: 8px;
-      background-color: #f9f9f9;
+      background-color: #fff;
       cursor: pointer;
       transition: all 0.3s ease;
     }
     
     .image-upload-wrapper:hover {
       border-color: #4CAF50;
-      background-color: #f0f8f0;
+      background-color: #f9f9f9;
     }
     
     .image-preview {
-      width: 120px;
-      height: 120px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       object-fit: cover;
       display: none;
-      border: 3px solid #4CAF50;
+      border: 2px solid #4CAF50;
     }
     
     .image-preview.show {
@@ -63,15 +62,31 @@
     
     .upload-placeholder {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
       color: #666;
+      flex: 1;
     }
     
     .upload-placeholder i {
-      font-size: 3rem;
+      font-size: 1.5rem;
       color: #4CAF50;
+    }
+    
+    .upload-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .upload-text span {
+      font-size: 0.95rem;
+      color: #333;
+    }
+    
+    .upload-text small {
+      color: #999;
+      font-size: 0.8rem;
     }
     
     #profileImage {
@@ -79,9 +94,9 @@
     }
     
     .file-name {
-      font-size: 0.875rem;
-      color: #666;
-      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: #4CAF50;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -93,6 +108,21 @@
       <h2>Create Account</h2>
 
       <form id="registerForm">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <div class="input-wrapper">
+            <i class="fas fa-user input-icon"></i>
+            <input
+              id="username"
+              type="text"
+              name="username"
+              required
+              minlength="3"
+              placeholder="Choose a username"
+            >
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="profileImage">Profile Picture (Optional)</label>
           <label for="profileImage" class="image-upload-wrapper">
@@ -110,21 +140,6 @@
             name="profileImage"
             accept="image/jpeg,image/png,image/gif"
           >
-        </div>
-
-        <div class="form-group">
-          <label for="username">Username</label>
-          <div class="input-wrapper">
-            <i class="fas fa-user input-icon"></i>
-            <input
-              id="username"
-              type="text"
-              name="username"
-              required
-              minlength="3"
-              placeholder="Choose a username"
-            >
-          </div>
         </div>
 
         <div class="form-group">
