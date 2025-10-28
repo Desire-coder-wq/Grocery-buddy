@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Grocery List</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="grocery-header">
+      <h1 class="title">My Grocery List</h1>
+      <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+    </div>
+
+    <div class="add-item-section">
+      <form id="addItemForm">
+        <div class="form-row">
+          <input id="itemName" type="text" placeholder="Add new item..." required>
+          <input id="itemQuantity" type="number" placeholder="Qty" min="1" value="1">
+          <select id="itemCategory">
+            <option value="Fruits">Fruits</option>
+            <option value="Vegetables">Vegetables</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Meat">Meat</option>
+            <option value="Bakery">Bakery</option>
+            <option value="Beverages">Beverages</option>
+            <option value="Other" selected>Other</option>
+          </select>
+          <button class="btn btn-primary" type="submit">Add</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="errorMessage" class="error-message"></div>
+
+    <div class="grocery-stats">
+      <p id="itemCount">Total Items: 0</p>
+    </div>
+
+    <div class="grocery-list" id="groceryList">
+      <p class="loading">Loading your items...</p>
+    </div>
+  </div>
+
+  <script src="/js/grocery.js"></script>
+</body>
+</html>
