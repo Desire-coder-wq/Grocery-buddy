@@ -1,236 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register | My Grocery Buddy</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    .input-wrapper {
-      position: relative;
-    }
-    
-    .input-wrapper input {
-      padding-left: 40px;
-    }
-    
-    .input-icon {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #666;
-      font-size: 16px;
-    }
-    
-    .title-icon {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-      color: #4CAF50;
-    }
-    
-    .image-upload-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 0.75rem 1rem;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      background-color: #fff;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .image-upload-wrapper:hover {
-      border-color: #4CAF50;
-      background-color: #f9f9f9;
-    }
-    
-    .image-preview {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      object-fit: cover;
-      display: none;
-      border: 2px solid #4CAF50;
-    }
-    
-    .image-preview.show {
-      display: block;
-    }
-    
-    .upload-placeholder {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      color: #666;
-      flex: 1;
-    }
-    
-    .upload-placeholder i {
-      font-size: 1.5rem;
-      color: #4CAF50;
-    }
-    
-    .upload-text {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-    
-    .upload-text span {
-      font-size: 0.95rem;
-      color: #333;
-    }
-    
-    .upload-text small {
-      color: #999;
-      font-size: 0.8rem;
-    }
-    
-    #profileImage {
-      display: none;
-    }
-    
-    .file-name {
-      font-size: 0.85rem;
-      color: #4CAF50;
-      font-weight: 500;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="auth-card">
-      <i class="fas fa-shopping-cart title-icon"></i>
-      <h1 class="title">My Grocery Buddy</h1>
-      <h2>Create Account</h2>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register | My Grocery Buddy</title>
 
-      <form id="registerForm">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <div class="input-wrapper">
-            <i class="fas fa-user input-icon"></i>
-            <input
-              id="username"
-              type="text"
-              name="username"
-              required
-              minlength="3"
-              placeholder="Choose a username"
-            >
-          </div>
-        </div>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
-        <div class="form-group">
-          <label for="profileImage">Profile Picture (Optional)</label>
-          <label for="profileImage" class="image-upload-wrapper">
-            <img id="imagePreview" class="image-preview" alt="Profile preview">
-            <div class="upload-placeholder">
-              <i class="fas fa-camera"></i>
-              <span>Click to upload photo</span>
-              <small>JPG, PNG or GIF (Max 5MB)</small>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body style="background-color: #f8f9fa">
+    <!-- Header -->
+    <!-- include ../partials/header -->
+    <!-- You can replace the above with your header HTML if needed -->
+
+    <main class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+          <div class="card mt-5 shadow">
+            <div class="card-body p-4">
+              <h2 class="text-center mb-4">Register</h2>
+
+              <!-- Display error message -->
+              <!-- Example: <div class="alert alert-danger">Error message here</div> -->
+
+              <!-- Display success message -->
+              <!-- Example: <div class="alert alert-success">Account created!</div> -->
+
+              <form
+                action="/auth/register"
+                method="POST"
+                enctype="multipart/form-data"
+              >
+                <div class="mb-3">
+                  <label for="name" class="form-label">Full Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="password" class="form-label">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="confirmPassword" class="form-label"
+                    >Confirm Password</label
+                  >
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="profileImage" class="form-label"
+                    >Profile Image</label
+                  >
+                  <input
+                    type="file"
+                    id="profileImage"
+                    name="profileImage"
+                    class="form-control"
+                    accept="image/*"
+                  />
+                </div>
+
+                <div class="d-grid">
+                  <button type="submit" class="btn btn-primary btn-lg">
+                    Register
+                  </button>
+                </div>
+
+                <div class="text-center mt-3">
+                  <p>
+                    Already have an account?
+                    <a href="/login">Login here</a>
+                  </p>
+                </div>
+              </form>
             </div>
-            <span id="fileName" class="file-name"></span>
-          </label>
-          <input
-            id="profileImage"
-            type="file"
-            name="profileImage"
-            accept="image/jpeg,image/png,image/gif"
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="email">Email</label>
-          <div class="input-wrapper">
-            <i class="fas fa-envelope input-icon"></i>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              required
-              placeholder="your@email.com"
-            >
           </div>
         </div>
-
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="input-wrapper">
-            <i class="fas fa-lock input-icon"></i>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              required
-              minlength="6"
-              placeholder="At least 6 characters"
-            >
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="confirmPassword">Confirm Password</label>
-          <div class="input-wrapper">
-            <i class="fas fa-lock input-icon"></i>
-            <input
-              id="confirmPassword"
-              type="password"
-              name="confirmPassword"
-              required
-              placeholder="Re-enter password"
-            >
-          </div>
-        </div>
-
-        <p id="errorMessage" class="error-message"></p>
-
-        <button class="btn btn-primary" type="submit">
-          <i class="fas fa-user-plus"></i> Register
-        </button>
-      </form>
-
-      <div class="auth-footer">
-        <p>
-          Already have an account?
-          <a href="/login"><i class="fas fa-sign-in-alt"></i> Login here</a>
-        </p>
       </div>
-    </div>
-  </div>
+    </main>
 
-  <script src="/js/register.js"></script>
-  <script>
-    // Image upload preview functionality
-    const profileImageInput = document.getElementById('profileImage');
-    const imagePreview = document.getElementById('imagePreview');
-    const fileName = document.getElementById('fileName');
-    const uploadPlaceholder = document.querySelector('.upload-placeholder');
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    profileImageInput.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      
-      if (file) {
-        // Check file size (5MB limit)
-        if (file.size > 5 * 1024 * 1024) {
-          alert('File size must be less than 5MB');
-          profileImageInput.value = '';
-          return;
-        }
-        
-        // Show preview
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          imagePreview.src = e.target.result;
-          imagePreview.classList.add('show');
-          uploadPlaceholder.style.display = 'none';
-          fileName.textContent = file.name;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  </script>
-</body>
+    <!-- Custom JS -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/grocery.js"></script>
+  </body>
 </html>
