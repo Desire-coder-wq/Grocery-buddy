@@ -1,67 +1,619 @@
 meta(charset="UTF-8")
-meta(name="viewport", content="width=device-width, initial-scale=1")
-title Register | My Grocery Buddy
-
-// Bootstrap CSS
-link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css", rel="stylesheet")
-
-// Custom CSS
-link(rel="stylesheet", href="/css/style.css")
-
-// Google Fonts
-link(rel="preconnect", href="https://fonts.googleapis.com")
-link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin)
-link(href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap", rel="stylesheet")
-
-// Header
-// include ../partials/header 
-// You can replace the above with your header HTML if needed
-
-main.container.py-4
-  .row.justify-content-center
-    .col-md-6.col-lg-5
-      .card.mt-5.shadow
-        .card-body.p-4
-          h2.text-center.mb-4 Register
-
-          // Display error message
-          // Example: <div class="alert alert-danger">Error message here</div>
-
-          // Display success message
-          // Example: <div class="alert alert-success">Account created!</div>
-
-          form(action="/auth/register", method="POST", enctype="multipart/form-data")
-            .mb-3
-              label.form-label(for="name") Full Name
-              input#name.form-control(type="text", name="name", required)
-
-            .mb-3
-              label.form-label(for="email") Email
-              input#email.form-control(type="email", name="email", required)
-
-            .mb-3
-              label.form-label(for="password") Password
-              input#password.form-control(type="password", name="password", required)
-
-            .mb-3
-              label.form-label(for="confirmPassword") Confirm Password
-              input#confirmPassword.form-control(type="password", name="confirmPassword", required)
-
-            .mb-3
-              label.form-label(for="profileImage") Profile Image
-              input#profileImage.form-control(type="file", name="profileImage", accept="image/*")
-
-            .d-grid
-              button.btn.btn-primary.btn-lg(type="submit") Register
-
-            .text-center.mt-3
-              p
-                | Already have an account? 
-                a(href="/login") Login here
-
-// Bootstrap JS
-script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js")
-
-// Custom JS
-script(src="/js/auth.js")
-script(src="/js/grocery.js")
+meta(name="viewport", content="width=device-width,initial-scale=1")
+title Register - ShopSmart
+style.
+  
+  * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+          }
+  
+          body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 20px;
+          }
+  
+          .register-container {
+              background: white;
+              border-radius: 20px;
+              padding: 40px;
+              box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+              width: 100%;
+              max-width: 450px;
+          }
+  
+          .back-link {
+              color: #667eea;
+              text-decoration: none;
+              font-size: 0.9em;
+              display: inline-block;
+              margin-bottom: 20px;
+          }
+  
+          .back-link:hover {
+              text-decoration: underline;
+          }
+  
+          h2 {
+              color: #333;
+              margin-bottom: 10px;
+              font-size: 2em;
+          }
+  
+          .subtitle {
+              color: #666;
+              margin-bottom: 30px;
+          }
+  
+          .form-group {
+              margin-bottom: 20px;
+          }
+  
+          label {
+              display: block;
+              color: #333;
+              font-weight: 600;
+              margin-bottom: 8px;
+          }
+  
+          .required {
+              color: #e74c3c;
+          }
+  
+          input {
+              width: 100%;
+              padding: 12px;
+              border: 2px solid #e0e0e0;
+              border-radius: 8px;
+              font-size: 1em;
+              transition: border-color 0.3s;
+          }
+  
+          input:focus {
+              outline: none;
+              border-color: #667eea;
+          }
+  
+          input.error {
+              border-color: #e74c3c;
+          }
+  
+          input.success {
+              border-color: #27ae60;
+          }
+  
+          .error-message {
+              color: #e74c3c;
+              font-size: 0.85em;
+              margin-top: 5px;
+              display: none;
+          }
+  
+          .error-message.show {
+              display: block;
+          }
+  
+          .success-message {
+              color: #27ae60;
+              font-size: 0.85em;
+              margin-top: 5px;
+              display: none;
+          }
+  
+          .success-message.show {
+              display: block;
+          }
+  
+          .password-strength {
+              margin-top: 8px;
+          }
+  
+          .strength-bar {
+              height: 4px;
+              background: #e0e0e0;
+              border-radius: 2px;
+              overflow: hidden;
+          }
+  
+          .strength-bar-fill {
+              height: 100%;
+              width: 0%;
+              transition: width 0.3s, background 0.3s;
+          }
+  
+          .strength-bar-fill.weak {
+              width: 33%;
+              background: #e74c3c;
+          }
+  
+          .strength-bar-fill.medium {
+              width: 66%;
+              background: #f39c12;
+          }
+  
+          .strength-bar-fill.strong {
+              width: 100%;
+              background: #27ae60;
+          }
+  
+          .strength-text {
+              font-size: 0.85em;
+              margin-top: 4px;
+              color: #666;
+          }
+  
+          .password-requirements {
+              font-size: 0.85em;
+              color: #666;
+              margin-top: 5px;
+              padding-left: 20px;
+          }
+  
+          .password-requirements li {
+              margin-bottom: 3px;
+          }
+  
+          .password-requirements li.met {
+              color: #27ae60;
+          }
+  
+          .btn {
+              width: 100%;
+              padding: 15px;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              border: none;
+              border-radius: 8px;
+              font-size: 1.1em;
+              font-weight: 600;
+              cursor: pointer;
+              transition: transform 0.3s;
+              margin-top: 10px;
+          }
+  
+          .btn:hover:not(:disabled) {
+              transform: translateY(-2px);
+              box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+          }
+  
+          .btn:disabled {
+              background: #ccc;
+              cursor: not-allowed;
+              transform: none;
+          }
+  
+          .login-link {
+              text-align: center;
+              margin-top: 20px;
+              color: #666;
+          }
+  
+          .login-link a {
+              color: #667eea;
+              text-decoration: none;
+              font-weight: 600;
+          }
+  
+          .login-link a:hover {
+              text-decoration: underline;
+          }
+  
+          .alert {
+              padding: 12px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+              display: none;
+          }
+  
+          .alert.success {
+              background: #d4edda;
+              color: #155724;
+              border: 1px solid #c3e6cb;
+          }
+  
+          .alert.error {
+              background: #f8d7da;
+              color: #721c24;
+              border: 1px solid #f5c6cb;
+          }
+  
+          .alert.show {
+              display: block;
+          }
+  
+          .loading-spinner {
+              display: inline-block;
+              width: 16px;
+              height: 16px;
+              border: 2px solid #ffffff;
+              border-radius: 50%;
+              border-top-color: transparent;
+              animation: spin 0.6s linear infinite;
+              margin-left: 8px;
+              vertical-align: middle;
+          }
+  
+          @keyframes spin {
+              to {
+                  transform: rotate(360deg);
+              }
+          }
+  
+.register-container
+  a.back-link(href="landing.html") ← Back to Home
+  h2 Create Account
+  p.subtitle Join ShopSmart today!
+  .alert#alertBox
+  form#registerForm(novalidate)
+    .form-group
+      label(for="username")
+        | Username 
+        span.required
+      input#username(type="text", name="username", required, autocomplete="username")
+      .error-message#usernameError
+      .success-message#usernameSuccess
+    .form-group
+      label(for="email")
+        | Email Address 
+        span.required
+      input#email(type="email", name="email", required, autocomplete="email")
+      .error-message#emailError
+      .success-message#emailSuccess
+    .form-group
+      label(for="password")
+        | Password 
+        span.required
+      input#password(type="password", name="password", required, autocomplete="new-password")
+      .password-strength
+        .strength-bar
+          .strength-bar-fill#strengthBar
+        .strength-text#strengthText
+        .form-group
+          label(for="confirmPassword")
+            | Confirm Password 
+            span.required
+          input#confirmPassword(type="password", name="confirmPassword", required, autocomplete="new-password")
+          .error-message#confirmError
+          .success-message#confirmSuccess
+        button.btn#submitBtn(type="submit") Create Account
+  .login-link
+    | 
+Already have an account? 
+    a(href="/auth/login") Login here
+script.
+  
+  // API Configuration - Replace with your actual backend URL
+          const API_URL = 'http://localhost:5000/api'; // Change this to your backend URL
+  
+          // Form elements
+          const form = document.getElementById('registerForm');
+          const submitBtn = document.getElementById('submitBtn');
+          const alertBox = document.getElementById('alertBox');
+  
+          // Input elements
+          const usernameInput = document.getElementById('username');
+          const emailInput = document.getElementById('email');
+          const passwordInput = document.getElementById('password');
+          const confirmPasswordInput = document.getElementById('confirmPassword');
+  
+          // Validation flags
+          let isUsernameValid = false;
+          let isEmailValid = false;
+          let isPasswordValid = false;
+          let isConfirmValid = false;
+  
+          // Real-time validation for username
+          usernameInput.addEventListener('blur', async () => {
+              const username = usernameInput.value.trim();
+              clearFieldErrors('username');
+  
+              if (username.length < 3) {
+                  showFieldError('username', 'Username must be at least 3 characters');
+                  isUsernameValid = false;
+                  return;
+              }
+  
+              if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                  showFieldError('username', 'Username can only contain letters, numbers, and underscores');
+                  isUsernameValid = false;
+                  return;
+              }
+  
+              // Check if username exists (server-side validation)
+              try {
+                  const exists = await checkUsernameExists(username);
+                  if (exists) {
+                      showFieldError('username', 'Username is already taken');
+                      isUsernameValid = false;
+                  } else {
+                      showFieldSuccess('username', 'Username is available');
+                      isUsernameValid = true;
+                  }
+              } catch (error) {
+                  console.error('Error checking username:', error);
+              }
+          });
+  
+          // Real-time validation for email
+          emailInput.addEventListener('blur', async () => {
+              const email = emailInput.value.trim();
+              clearFieldErrors('email');
+  
+              if (!isValidEmail(email)) {
+                  showFieldError('email', 'Please enter a valid email address');
+                  isEmailValid = false;
+                  return;
+              }
+  
+              // Check if email exists (server-side validation)
+              try {
+                  const exists = await checkEmailExists(email);
+                  if (exists) {
+                      showFieldError('email', 'Email is already registered');
+                      isEmailValid = false;
+                  } else {
+                      showFieldSuccess('email', 'Email is available');
+                      isEmailValid = true;
+                  }
+              } catch (error) {
+                  console.error('Error checking email:', error);
+              }
+          });
+  
+          // Real-time password strength checker
+          passwordInput.addEventListener('input', () => {
+              const password = passwordInput.value;
+              checkPasswordStrength(password);
+          });
+  
+          passwordInput.addEventListener('blur', () => {
+              const password = passwordInput.value;
+              clearFieldErrors('password');
+  
+              const requirements = getPasswordRequirements(password);
+              const allMet = Object.values(requirements).every(req => req);
+  
+              if (!allMet) {
+                  showFieldError('password', 'Password does not meet all requirements');
+                  isPasswordValid = false;
+              } else {
+                  isPasswordValid = true;
+              }
+          });
+  
+          // Real-time confirm password validation
+          confirmPasswordInput.addEventListener('input', () => {
+              const password = passwordInput.value;
+              const confirmPassword = confirmPasswordInput.value;
+              clearFieldErrors('confirm');
+  
+              if (confirmPassword && password !== confirmPassword) {
+                  showFieldError('confirm', 'Passwords do not match');
+                  isConfirmValid = false;
+              } else if (confirmPassword && password === confirmPassword) {
+                  showFieldSuccess('confirm', 'Passwords match');
+                  isConfirmValid = true;
+              }
+          });
+  
+          // Form submission
+          form.addEventListener('submit', async (e) => {
+              e.preventDefault();
+  
+              // Clear previous alerts
+              hideAlert();
+  
+              // Get form values
+              const username = usernameInput.value.trim();
+              const email = emailInput.value.trim();
+              const password = passwordInput.value;
+              const confirmPassword = confirmPasswordInput.value;
+  
+              // Client-side validation
+              let isValid = true;
+  
+              // Validate username
+              if (username.length < 3) {
+                  showFieldError('username', 'Username must be at least 3 characters');
+                  isValid = false;
+              } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                  showFieldError('username', 'Username can only contain letters, numbers, and underscores');
+                  isValid = false;
+              }
+  
+              // Validate email
+              if (!isValidEmail(email)) {
+                  showFieldError('email', 'Please enter a valid email address');
+                  isValid = false;
+              }
+  
+              // Validate password
+              const passwordReqs = getPasswordRequirements(password);
+              if (!Object.values(passwordReqs).every(req => req)) {
+                  showFieldError('password', 'Password does not meet all requirements');
+                  isValid = false;
+              }
+  
+              // Validate confirm password
+              if (password !== confirmPassword) {
+                  showFieldError('confirm', 'Passwords do not match');
+                  isValid = false;
+              }
+  
+              if (!isValid) {
+                  showAlert('Please fix all errors before submitting', 'error');
+                  return;
+              }
+  
+              // Disable submit button
+              submitBtn.disabled = true;
+              submitBtn.innerHTML = 'Creating Account... <span class="loading-spinner"></span>';
+  
+              try {
+                  // Send registration request to backend
+                  const response = await fetch(`${API_URL}/auth/register`, {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({ username, email, password })
+                  });
+  
+                  const data = await response.json();
+  
+                  if (response.ok) {
+                      // Success
+                      showAlert('Account created successfully! Redirecting to login...', 'success');
+                      form.reset();
+  
+                      // Redirect to login after 2 seconds
+                      setTimeout(() => {
+                          window.location.href = 'login.html';
+                      }, 2000);
+                  } else {
+                      // Server-side validation errors
+                      if (data.field) {
+                          showFieldError(data.field, data.message);
+                      }
+                      showAlert(data.message || 'Registration failed. Please try again.', 'error');
+                  }
+              } catch (error) {
+                  console.error('Registration error:', error);
+                  showAlert('Network error. Please check your connection and try again.', 'error');
+              } finally {
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Create Account';
+              }
+          });
+  
+          // Password strength checker
+          function checkPasswordStrength(password) {
+              const strengthBar = document.getElementById('strengthBar');
+              const strengthText = document.getElementById('strengthText');
+  
+              const requirements = getPasswordRequirements(password);
+              const metCount = Object.values(requirements).filter(req => req).length;
+  
+              // Update requirement indicators
+              document.getElementById('req-length').className = requirements.length ? 'met' : '';
+              document.getElementById('req-uppercase').className = requirements.uppercase ? 'met' : '';
+              document.getElementById('req-lowercase').className = requirements.lowercase ? 'met' : '';
+              document.getElementById('req-number').className = requirements.number ? 'met' : '';
+  
+              // Update strength bar
+              strengthBar.className = 'strength-bar-fill';
+  
+              if (password.length === 0) {
+                  strengthText.textContent = '';
+                  return;
+              }
+  
+              if (metCount < 3) {
+                  strengthBar.classList.add('weak');
+                  strengthText.textContent = 'Weak password';
+                  strengthText.style.color = '#e74c3c';
+              } else if (metCount === 3) {
+                  strengthBar.classList.add('medium');
+                  strengthText.textContent = 'Medium password';
+                  strengthText.style.color = '#f39c12';
+              } else {
+                  strengthBar.classList.add('strong');
+                  strengthText.textContent = 'Strong password';
+                  strengthText.style.color = '#27ae60';
+              }
+          }
+  
+          // Get password requirements status
+          function getPasswordRequirements(password) {
+              return {
+                  length: password.length >= 8,
+                  uppercase: /[A-Z]/.test(password),
+                  lowercase: /[a-z]/.test(password),
+                  number: /[0-9]/.test(password)
+              };
+          }
+  
+          // Email validation
+          function isValidEmail(email) {
+              return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+          }
+  
+          // Check if username exists
+          async function checkUsernameExists(username) {
+              try {
+                  const response = await fetch(`${API_URL}/auth/check-username?username=${encodeURIComponent(username)}`);
+                  const data = await response.json();
+                  return data.exists;
+              } catch (error) {
+                  console.error('Error checking username:', error);
+                  return false;
+              }
+          }
+  
+          // Check if email exists
+          async function checkEmailExists(email) {
+              try {
+                  const response = await fetch(`${API_URL}/auth/check-email?email=${encodeURIComponent(email)}`);
+                  const data = await response.json();
+                  return data.exists;
+              } catch (error) {
+                  console.error('Error checking email:', error);
+                  return false;
+              }
+          }
+  
+          // Show field error
+          function showFieldError(field, message) {
+              const input = document.getElementById(field === 'confirm' ? 'confirmPassword' : field);
+              const errorElement = document.getElementById(field + 'Error');
+  
+              input.classList.add('error');
+              input.classList.remove('success');
+              errorElement.textContent = message;
+              errorElement.classList.add('show');
+          }
+  
+          // Show field success
+          function showFieldSuccess(field, message) {
+              const input = document.getElementById(field);
+              const successElement = document.getElementById(field + 'Success');
+  
+              input.classList.remove('error');
+              input.classList.add('success');
+              successElement.textContent = message;
+              successElement.classList.add('show');
+          }
+  
+          // Clear field errors
+          function clearFieldErrors(field) {
+              const input = document.getElementById(field === 'confirm' ? 'confirmPassword' : field);
+              const errorElement = document.getElementById(field + 'Error');
+              const successElement = document.getElementById(field + 'Success');
+  
+              input.classList.remove('error', 'success');
+              if (errorElement) {
+                  errorElement.classList.remove('show');
+              }
+              if (successElement) {
+                  successElement.classList.remove('show');
+              }
+          }
+  
+          // Show alert
+          function showAlert(message, type) {
+              alertBox.textContent = message;
+              alertBox.className = 'alert ' + type + ' show';
+              alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+  
+          // Hide alert
+          function hideAlert() {
+              alertBox.classList.remove('show');
+          }
+  

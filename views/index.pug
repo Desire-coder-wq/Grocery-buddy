@@ -1,0 +1,137 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    title= title || 'ShopSmart - Your Personal Shopping List'
+    style.
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        max-width: 1200px;
+        padding: 20px;
+        width: 100%;
+      }
+      .hero {
+        background: white;
+        border-radius: 20px;
+        padding: 60px 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        text-align: center;
+      }
+      h1 {
+        font-size: 3em;
+        color: #667eea;
+        margin-bottom: 20px;
+      }
+      .tagline {
+        font-size: 1.3em;
+        color: #666;
+        margin-bottom: 40px;
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        margin: 40px 0;
+      }
+      .feature {
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        transition: transform 0.3s;
+      }
+      .feature:hover {
+        transform: translateY(-5px);
+      }
+      .feature-icon {
+        font-size: 3em;
+        margin-bottom: 10px;
+      }
+      .feature h3 {
+        color: #333;
+        margin-bottom: 10px;
+      }
+      .feature p {
+        color: #666;
+        line-height: 1.6;
+      }
+      .cta-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 40px;
+      }
+      .btn {
+        padding: 15px 40px;
+        font-size: 1.1em;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .btn-primary:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      }
+      .btn-secondary {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+      }
+      .btn-secondary:hover {
+        background: #667eea;
+        color: white;
+      }
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2em;
+        }
+        .tagline {
+          font-size: 1.1em;
+        }
+        .cta-buttons {
+          flex-direction: column;
+        }
+        .hero {
+          padding: 40px 20px;
+        }
+      }
+  body
+    .container
+      .hero
+        h1 🛒 ShopSmart
+        p.tagline Your Personal Shopping List Manager
+        .features
+          .feature
+            .feature-icon 📝
+            h3 Easy Organization
+            p Create and manage your shopping lists effortlessly with our intuitive interface
+          .feature
+            .feature-icon ☁️
+            h3 Cloud Sync
+            p Access your lists from anywhere, anytime on any device
+          .feature
+            .feature-icon 🔒
+            h3 Secure & Private
+            p Your data is protected with secure authentication and encryption
+        .cta-buttons
+          a.btn.btn-primary(href="/auth/register") Get Started
+          a.btn.btn-secondary(href="/auth/login") Login
