@@ -50,13 +50,13 @@ router.get('/login', redirectIfAuthenticated, (req, res) => {
 // POST: Login
 router.post('/login', async (req, res) => {
   try {
-    console.log('📥 Login attempt received:', { email: req.body.email, hasPassword: !!req.body.password });
+    console.log(' Login attempt received:', { email: req.body.email, hasPassword: !!req.body.password });
     
     const { email, password, rememberMe } = req.body;
 
     // Validate input
     if (!email || !password) {
-      console.log('❌ Missing email or password');
+      console.log(' Missing email or password');
       return res.status(400).json({ 
         success: false, 
         message: 'Email and password are required' 
@@ -66,11 +66,11 @@ router.post('/login', async (req, res) => {
     // Find user by email in the database
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     
-    console.log('🔍 User search result:', user ? `Found: ${user.username}` : 'Not found');
+    console.log(' User search result:', user ? `Found: ${user.username}` : 'Not found');
     
     // If user not found in database
     if (!user) {
-      console.log('❌ User not registered');
+      console.log(' User not registered');
       return res.status(400).json({ 
         success: false, 
         message: 'User not registered. Please create an account first.' 
@@ -80,11 +80,11 @@ router.post('/login', async (req, res) => {
     // Check password using bcrypt compare
     const isMatch = await bcrypt.compare(password, user.password);
     
-    console.log('🔐 Password check:', isMatch ? 'Match' : 'No match');
+    console.log('Password check:', isMatch ? 'Match' : 'No match');
     
     // If password doesn't match
     if (!isMatch) {
-      console.log('❌ Invalid password');
+      console.log(' Invalid password');
       return res.status(400).json({ 
         success: false, 
         message: 'Invalid email or password' 
@@ -101,19 +101,19 @@ router.post('/login', async (req, res) => {
       req.session.cookie.expires = false; // Session cookie
     }
 
-    console.log('✅ User logged in:', user.username, '| Session ID:', req.session.id);
+    console.log(' User logged in:', user.username, '| Session ID:', req.session.id);
 
     // Save the session before sending response
     req.session.save(err => {
       if (err) {
-        console.error('❌ Session save error:', err);
+        console.error(' Session save error:', err);
         return res.status(500).json({ 
           success: false, 
           message: 'Session error. Please try again.' 
         });
       }
 
-      console.log('✅ Session saved successfully');
+      console.log(' Session saved successfully');
       
       res.json({
         success: true,
@@ -128,7 +128,7 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Login error:', error);
+    console.error(' Login error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Server error during login. Please try again.' 
@@ -273,7 +273,7 @@ router.post('/register', upload.single('profileImage'), async (req, res) => {
     // Save user (password will be hashed automatically by pre-save hook)
     await newUser.save();
 
-    console.log('✅ New user registered:', username);
+    console.log(' New user registered:', username);
 
     res.status(201).json({
       success: true,
