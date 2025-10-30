@@ -7,7 +7,7 @@ const { redirectIfAuthenticated } = require('../middleware/auth');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
-// Create uploads directory if it doesn't exist
+
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -42,12 +42,12 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-// GET: Login page
+// Login page
 router.get('/login', redirectIfAuthenticated, (req, res) => {
   res.render('login', { title: 'Login' });
 });
 
-// POST: Login
+
 router.post('/login', async (req, res) => {
   try {
     console.log(' Login attempt received:', { email: req.body.email, hasPassword: !!req.body.password });
@@ -94,7 +94,7 @@ router.post('/login', async (req, res) => {
     // Set user session
     req.session.userId = user._id;
 
-    // Set session cookie with longer expiration if rememberMe is true
+    
     if (rememberMe) {
       req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     } else {
@@ -103,7 +103,7 @@ router.post('/login', async (req, res) => {
 
     console.log(' User logged in:', user.username, '| Session ID:', req.session.id);
 
-    // Save the session before sending response
+    
     req.session.save(err => {
       if (err) {
         console.error(' Session save error:', err);
@@ -136,12 +136,11 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET: Register page
+//  Register page
 router.get('/register', redirectIfAuthenticated, (req, res) => {
   res.render('register', { title: 'Register' });
 });
 
-// GET: Check if username exists
 router.get('/check-username', async (req, res) => {
   try {
     const { username } = req.query;
@@ -164,7 +163,7 @@ router.get('/check-username', async (req, res) => {
   }
 });
 
-// GET: Check if email exists
+// Check if email exists
 router.get('/check-email', async (req, res) => {
   try {
     const { email } = req.query;
@@ -187,7 +186,7 @@ router.get('/check-email', async (req, res) => {
   }
 });
 
-// POST: Register new user
+//  Register new user
 router.post('/register', upload.single('profileImage'), async (req, res) => {
   try {
     const { username, email, password } = req.body;

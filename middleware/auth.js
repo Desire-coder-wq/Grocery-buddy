@@ -6,10 +6,10 @@ const requireAuth = async (req, res, next) => {
   }
   
   try {
-    // Attach user to request for use in routes
+    
     req.user = await User.findById(req.session.userId).select('-password');
     if (!req.user) {
-      // User not found in database but session exists - clear session
+      
       req.session.destroy();
       return res.redirect('/auth/login');
     }

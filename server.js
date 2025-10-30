@@ -9,7 +9,7 @@ const MongoStore = require("connect-mongo");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB - CALL the function
+// Connect to MongoDB 
 const connectDB = require("./config/database");
 connectDB(); 
 
