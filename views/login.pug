@@ -1,266 +1,255 @@
-meta(charset="UTF-8")
-meta(name="viewport", content="width=device-width,initial-scale=1")
-title Login - ShopSmart
-style.
-  
-  * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-          }
-  
-          body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              min-height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              padding: 20px;
-          }
-  
-          .login-container {
-              background: white;
-              border-radius: 20px;
-              padding: 40px;
-              box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-              width: 100%;
-              max-width: 450px;
-          }
-  
-          .back-link {
-              color: #667eea;
-              text-decoration: none;
-              font-size: 0.9em;
-              display: inline-block;
-              margin-bottom: 20px;
-          }
-  
-          .back-link:hover {
-              text-decoration: underline;
-          }
-  
-          h2 {
-              color: #333;
-              margin-bottom: 10px;
-              font-size: 2em;
-          }
-  
-          .subtitle {
-              color: #666;
-              margin-bottom: 30px;
-          }
-  
-          .form-group {
-              margin-bottom: 20px;
-          }
-  
-          label {
-              display: block;
-              color: #333;
-              font-weight: 600;
-              margin-bottom: 8px;
-          }
-  
-          input {
-              width: 100%;
-              padding: 12px;
-              border: 2px solid #e0e0e0;
-              border-radius: 8px;
-              font-size: 1em;
-              transition: border-color 0.3s;
-          }
-  
-          input:focus {
-              outline: none;
-              border-color: #667eea;
-          }
-  
-          .error-message {
-              background: #fee;
-              color: #c33;
-              padding: 12px;
-              border-radius: 8px;
-              margin-bottom: 20px;
-              display: none;
-          }
-  
-          .remember-forgot {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 20px;
-          }
-  
-          .remember-me {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-          }
-  
-          .remember-me input[type="checkbox"] {
-              width: auto;
-              cursor: pointer;
-          }
-  
-          .forgot-password {
-              color: #667eea;
-              text-decoration: none;
-              font-size: 0.9em;
-          }
-  
-          .forgot-password:hover {
-              text-decoration: underline;
-          }
-  
-          .btn {
-              width: 100%;
-              padding: 15px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              font-size: 1.1em;
-              font-weight: 600;
-              cursor: pointer;
-              transition: transform 0.3s;
-          }
-  
-          .btn:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-          }
-  
-          .btn:disabled {
-              background: #ccc;
-              cursor: not-allowed;
-              transform: none;
-          }
-  
-          .register-link {
-              text-align: center;
-              margin-top: 20px;
-              color: #666;
-          }
-  
-          .register-link a {
-              color: #667eea;
-              text-decoration: none;
-              font-weight: 600;
-          }
-  
-          .register-link a:hover {
-              text-decoration: underline;
-          }
-  
-.login-container
-  a.back-link(href="/index") ← Back to Home
-  h2 Welcome Back
-  p.subtitle Login to your account
-  .error-message#errorMessage
-  form#loginForm
-    .form-group
-      label(for="email") Email Address
-      input#email(type="email", name="email", required)
-    .form-group
-      label(for="password") Password
-      input#password(type="password", name="password", required)
-    .remember-forgot
-      label.remember-me
-        input#rememberMe(type="checkbox")
-        span Remember me
-      a.forgot-password(href="#") Forgot password?
-    button.btn#loginBtn(type="submit") Login
-  .register-link
-    | Don't have an account? 
-    a(href="/auth/register") Register here
-script.
-  
-  const form = document.getElementById('loginForm');
-          const loginBtn = document.getElementById('loginBtn');
-          const errorMessage = document.getElementById('errorMessage');
-  
-          form.addEventListener('submit', async (e) => {
-              e.preventDefault();
-  
-              errorMessage.style.display = 'none';
-  
-              const email = document.getElementById('email').value.trim();
-              const password = document.getElementById('password').value;
-              const rememberMe = document.getElementById('rememberMe').checked;
-  
-              // Basic validation
-              if (!email || !password) {
-                  showError('Please fill in all fields');
-                  return;
-              }
-  
-              // Disable button during login
-              loginBtn.disabled = true;
-              loginBtn.textContent = 'Logging in...';
-              
-              try {
-                  const response = await fetch('/auth/login', {
-                      method: 'POST',
-                      headers: {
-                          'Content-Type': 'application/json'
-                      },
-                      body: JSON.stringify({ 
-                          email, 
-                          password,
-                          rememberMe
-                      })
-                  });
-                  
-                  const data = await response.json();
-                  
-                  if (data.success) {
-                      // Store the remember me preference
-                      if (rememberMe) {
-                          localStorage.setItem('rememberMe', 'true');
-                      } else {
-                          sessionStorage.setItem('rememberMe', 'true');
-                          localStorage.removeItem('rememberMe');
-                      }
-                      
-                      // Redirect to dashboard on successful login
-                      window.location.href = data.redirect || '/dashboard';
-                  } else {
-                      showError(data.message || 'Login failed. Please try again.');
-                      loginBtn.disabled = false;
-                      loginBtn.textContent = 'Login';
-                  }
-              } catch (error) {
-                  console.error('Login error:', error);
-                  showError('An error occurred. Please try again.');
-                  loginBtn.disabled = false;
-                  loginBtn.textContent = 'Login';
-              }
-                  }
-              } catch (error) {
-                  showError('An error occurred. Please try again.');
-              } finally {
-                  loginBtn.disabled = false;
-                  loginBtn.textContent = 'Login';
-              }
+doctype html
+html
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width,initial-scale=1")
+    title Login - Grocery Buddy
+    style.
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .login-container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        width: 100%;
+        max-width: 450px;
+      }
+
+      .back-link {
+        color: #667eea;
+        text-decoration: none;
+        font-size: 0.9em;
+        display: inline-block;
+        margin-bottom: 20px;
+      }
+
+      .back-link:hover {
+        text-decoration: underline;
+      }
+
+      h2 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 2em;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: border-color 0.3s;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .error-message {
+        background: #fee;
+        color: #c33;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .remember-forgot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .remember-me input[type="checkbox"] {
+        width: auto;
+        cursor: pointer;
+      }
+
+      .forgot-password {
+        color: #667eea;
+        text-decoration: none;
+        font-size: 0.9em;
+      }
+
+      .forgot-password:hover {
+        text-decoration: underline;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .register-link {
+        text-align: center;
+        margin-top: 20px;
+        color: #666;
+      }
+
+      .register-link a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .register-link a:hover {
+        text-decoration: underline;
+      }
+
+  body
+    .login-container
+      a.back-link(href="/") ← Back to Home
+      h2 Welcome Back
+      p.subtitle Login to your account
+      .error-message#errorMessage
+      form#loginForm
+        .form-group
+          label(for="email") Email Address
+          input#email(type="email", name="email", required)
+        .form-group
+          label(for="password") Password
+          input#password(type="password", name="password", required)
+        .remember-forgot
+          label.remember-me
+            input#rememberMe(type="checkbox")
+            span Remember me
+          a.forgot-password(href="#") Forgot password?
+        button.btn#loginBtn(type="submit") Login
+      .register-link
+        | Don't have an account? 
+        a(href="/auth/register") Register here
+
+    script.
+      const form = document.getElementById('loginForm');
+      const loginBtn = document.getElementById('loginBtn');
+      const errorMessage = document.getElementById('errorMessage');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        errorMessage.style.display = 'none';
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const rememberMe = document.getElementById('rememberMe').checked;
+
+        // Basic validation
+        if (!email || !password) {
+          showError('Please fill in all fields');
+          return;
+        }
+
+        // Disable button during login
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in...';
+        
+        try {
+          const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              email, 
+              password,
+              rememberMe
+            })
           });
-  
-          function showError(message) {
-              errorMessage.textContent = message;
-              errorMessage.style.display = 'block';
+          
+          const data = await response.json();
+          
+          console.log('Login response:', data);
+          
+          if (data.success) {
+            console.log('Login successful, redirecting to:', data.redirect);
+            // Redirect to dashboard on successful login
+            window.location.href = data.redirect || '/dashboard';
+          } else {
+            console.log('Login failed:', data.message);
+            showError(data.message || 'Login failed. Please try again.');
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
           }
-  
-          // Check if user is already logged in (client-side check)
-          window.addEventListener('load', () => {
-              // This is just a client-side check, server will handle the actual authentication
-              // We'll rely on the session cookie for authentication
-              fetch('/auth/check-auth')
-                  .then(response => response.json())
-                  .then(data => {
-                      if (data.authenticated) {
-                          window.location.href = '/dashboard';
-                      }
-                  })
-                  .catch(error => console.error('Auth check failed:', error));
-          });
-  
+        } catch (error) {
+          console.error('Login error:', error);
+          showError('An error occurred. Please try again.');
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Login';
+        }
+      });
+
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+      }
+
+      // Check if user is already logged in
+      window.addEventListener('load', () => {
+        fetch('/auth/check-auth')
+          .then(response => response.json())
+          .then(data => {
+            if (data.authenticated) {
+              window.location.href = '/dashboard';
+            }
+          })
+          .catch(error => console.error('Auth check failed:', error));
+      });

@@ -53,9 +53,9 @@ app.post("/api/auth/register", async (req, res) => {
     // Validation object to store all errors
     const validationErrors = {};
 
-    // ============================================
+    
     // VALIDATION HELPER FUNCTIONS
-    // ============================================
+    
 
     // Validate username format
     function validateUsername(username) {
@@ -113,9 +113,9 @@ app.post("/api/auth/register", async (req, res) => {
       return errors;
     }
 
-    // ============================================
+    
     // CLIENT-SIDE VALIDATION (Server Side)
-    // ============================================
+    
 
     // Validate username
     const usernameErrors = validateUsername(username);
@@ -145,9 +145,8 @@ app.post("/api/auth/register", async (req, res) => {
       });
     }
 
-    // ============================================
+
     // CHECK IF USERNAME ALREADY EXISTS
-    // ============================================
 
     const existingUsername = await User.findOne({
       username: username.trim(),
@@ -161,9 +160,9 @@ app.post("/api/auth/register", async (req, res) => {
       });
     }
 
-    // ============================================
+  
     // CHECK IF EMAIL ALREADY EXISTS
-    // ============================================
+    
 
     const existingEmail = await User.findOne({
       email: email.trim().toLowerCase(),
@@ -177,10 +176,10 @@ app.post("/api/auth/register", async (req, res) => {
       });
     }
 
-    // ============================================
+  
     // CREATE NEW USER
     // Password will be automatically hashed by the pre-save middleware
-    // ============================================
+    
 
     const newUser = new User({
       username: username.trim(),
@@ -191,11 +190,11 @@ app.post("/api/auth/register", async (req, res) => {
     // Save user to database
     await newUser.save();
 
-    console.log("✅ New user registered:", username);
+    console.log(" New user registered:", username);
 
-    // ============================================
+    
     // RETURN SUCCESS RESPONSE
-    // ============================================
+    
 
     res.status(201).json({
       success: true,
