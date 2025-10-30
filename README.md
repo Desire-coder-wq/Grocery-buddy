@@ -152,7 +152,8 @@ Other
 
  TEAM
 
-Desire Desire Asingura
+Desire Rose Asingura
+Kasande Emily
 
 🔗 GitHub Profile
 
