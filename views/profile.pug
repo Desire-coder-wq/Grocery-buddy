@@ -1,6 +1,9 @@
-meta(charset="UTF-8")
-meta(name="viewport", content="width=device-width,initial-scale=1")
-title Profile - ShopSmart
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    title Profile - ShopSmart
 style.
   
   * {
@@ -228,11 +231,12 @@ style.
               }
           }
   
-nav.navbar
-  h1 🛒 ShopSmart
-  .nav-right
-    a.nav-btn(href="dashboard.html") Dashboard
-    button.nav-btn(onclick="logout()") Logout
+  body
+    nav.navbar
+      h1 🛒 ShopSmart
+      .nav-right
+        a.nav-btn(href="/dashboard") Dashboard
+        a.nav-btn(href="/auth/logout") Logout
 .container
   .profile-header
     .profile-icon 👤
@@ -285,19 +289,52 @@ nav.navbar
       button.btn.btn-danger(onclick="deleteAccount()") Delete Account
 script.
   
-  // Check authentication
-          window.addEventListener('load', () => {
-              const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-              const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
-  
-              if (!token) {
-                  window.location.href = 'login.html';
-                  return;
-              }
-  
-              loadUserData(email);
-              loadStats();
-          });
+  // Initialize the profile page
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('Profile page loaded');
+    
+    // Function to check authentication status
+    const checkAuth = () => {
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
+      
+      if (!token || !email) {
+        console.log('No auth token or email found');
+        window.location.href = '/auth/login';
+        return false;
+      }
+      
+      return { token, email };
+    };
+    
+    // Initialize the page
+    const init = () => {
+      const auth = checkAuth();
+      if (!auth) return;
+      
+      console.log('User is authenticated, loading profile data');
+      loadUserData(auth.email);
+      loadStats();
+      setupEventListeners();
+    };
+    
+    // Set up all event listeners
+    const setupEventListeners = () => {
+      // Prevent form submissions from reloading the page
+      const forms = document.querySelectorAll('form');
+      forms.forEach(form => {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          console.log('Form submission prevented');
+        });
+      });
+      
+      // Add any other event listeners here
+    };
+    
+    // Start the initialization
+    init();
+  });
   
           // Load user data
           async function loadUserData(email) {
@@ -430,6 +467,6 @@ script.
               localStorage.removeItem('userEmail');
               sessionStorage.removeItem('authToken');
               sessionStorage.removeItem('userEmail');
-              window.location.href = 'login.html';
+              window.location.href = '/auth/login';
           }
   

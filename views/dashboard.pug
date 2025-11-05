@@ -77,6 +77,14 @@ html(lang="en")
         padding: 30px 20px;
       }
 
+      .view-section {
+        display: none;
+      }
+
+      .view-section.active {
+        display: block;
+      }
+
       .welcome {
         background: white;
         padding: 20px;
@@ -258,6 +266,104 @@ html(lang="en")
         margin-bottom: 20px;
       }
 
+      .profile-section {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f0f0f0;
+      }
+
+      .profile-image-large {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 4px solid #667eea;
+        object-fit: cover;
+        background: #f0f0f0;
+      }
+
+      .profile-info {
+        flex: 1;
+      }
+
+      .profile-info h2 {
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .profile-info p {
+        color: #666;
+      }
+
+      .profile-form {
+        display: grid;
+        gap: 20px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .form-group label {
+        font-weight: 600;
+        color: #333;
+      }
+
+      .form-group input {
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1em;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .btn-save {
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s;
+        margin-top: 10px;
+      }
+
+      .btn-save:hover {
+        transform: translateY(-2px);
+      }
+
+      .back-btn {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 8px 16px;
+        background: #f0f0f0;
+        color: #333;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background 0.3s;
+      }
+
+      .back-btn:hover {
+        background: #e0e0e0;
+      }
+
       @media (max-width: 768px) {
         .add-item-form {
           flex-direction: column;
@@ -271,6 +377,11 @@ html(lang="en")
           flex-direction: column;
           gap: 5px;
         }
+
+        .profile-header {
+          flex-direction: column;
+          text-align: center;
+        }
       }
 
   body
@@ -283,49 +394,113 @@ html(lang="en")
           else
             img.profile-image(src="/uploads/default-avatar.png", alt="Profile")
           span.user-email= user ? user.email : ''
+          a.nav-btn(href="#", onclick="showProfile(); return false;") Profile
         a.nav-btn(href="/auth/logout") Logout
 
     .container
-      .welcome
-        h2 Welcome back, #{user ? user.username : 'Guest'}! 👋
-        p Manage your shopping list below
+      #dashboardView.view-section.active
+        .welcome
+          h2 Welcome back, #{user ? user.username : 'Guest'}! 
+          p Manage your shopping list below
 
-      .add-item-section
-        h3(style="margin-bottom: 15px; color: #333;") Add New Item
-        form.add-item-form#addItemForm
-          input#itemName(type="text", placeholder="Item name (e.g., Milk, Bread...)", required)
-          input#itemQuantity(type="text", placeholder="Quantity (e.g., 2, 1kg...)", style="max-width: 200px;")
-          button.btn-add(type="submit") Add Item
+        .add-item-section
+          h3(style="margin-bottom: 15px; color: #333;") Add New Item
+          form.add-item-form#addItemForm
+            input#itemName(type="text", placeholder="Item name (e.g., Milk, Bread...)", required)
+            input#itemQuantity(type="text", placeholder="Quantity (e.g., 2, 1kg...)", style="max-width: 200px;")
+            button.btn-add(type="submit") Add Item
 
-      .shopping-list
-        .list-header
-          h3
-            | My Shopping List (
-            span#itemCount 0
-            | )
-          button.clear-all-btn(onclick="clearCompleted()") Clear Completed
-        #itemsList
-          .empty-state
-            .empty-state-icon 🛍️
-            h3 No items yet
-            p Add your first item to get started!
+        .shopping-list
+          .list-header
+            h3
+              | My Shopping List (
+              span#itemCount 0
+              | )
+            button.clear-all-btn(onclick="clearCompleted()") Clear Completed
+          #itemsList
+            .empty-state
+              .empty-state-icon 🛍️
+              h3 No items yet
+              p Add your first item to get started!
+
+      #profileView.view-section
+        a.back-btn(href="#", onclick="showDashboard(); return false;") ← Back to Dashboard
+        
+        .profile-section
+          .profile-header
+            if user && user.profileImage
+              img.profile-image-large(src=user.profileImage, alt="Profile")
+            else
+              img.profile-image-large(src="/uploads/default-avatar.png", alt="Profile")
+            .profile-info
+              h2= user ? user.username : 'User Profile'
+              p= user ? user.email : 'user@example.com'
+
+          form.profile-form#profileForm
+            .form-group
+              label(for="profileUsernameInput") Username
+              input#profileUsernameInput(type="text", value=user ? user.username : '', placeholder="Enter username")
+
+            .form-group
+              label(for="profileEmailInput") Email
+              input#profileEmailInput(type="email", value=user ? user.email : '', placeholder="Enter email")
+
+            .form-group
+              label(for="profileImageInput") Profile Image URL
+              input#profileImageInput(type="text", value=user ? user.profileImage : '', placeholder="Enter image URL")
+
+            button.btn-save(type="submit") Save Changes
 
     script.
       let items = [];
 
-      // Load items on page load
       window.addEventListener('load', () => {
         loadItems();
       });
 
-      // Load items from backend
+      function showProfile() {
+        document.getElementById('dashboardView').classList.remove('active');
+        document.getElementById('profileView').classList.add('active');
+      }
+
+      function showDashboard() {
+        document.getElementById('profileView').classList.remove('active');
+        document.getElementById('dashboardView').classList.add('active');
+      }
+
+      document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('profileUsernameInput').value;
+        const email = document.getElementById('profileEmailInput').value;
+        const profileImage = document.getElementById('profileImageInput').value;
+
+        try {
+          const response = await fetch('/dashboard/profile/update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email, profileImage })
+          });
+
+          if (response.ok) {
+            alert('Profile updated successfully!');
+            location.reload();
+          } else {
+            alert('Failed to update profile');
+          }
+        } catch (error) {
+          console.error('Error updating profile:', error);
+          alert('Error updating profile');
+        }
+      });
+
       async function loadItems() {
-        // Demo data for now
         items = [];
         renderItems();
       }
 
-      // Add new item
       document.getElementById('addItemForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -349,7 +524,6 @@ html(lang="en")
         document.getElementById('itemQuantity').value = '';
       });
 
-      // Toggle item completion
       function toggleItem(id) {
         const item = items.find(i => i.id === id);
         if (item) {
@@ -358,7 +532,6 @@ html(lang="en")
         }
       }
 
-      // Edit item
       function editItem(id) {
         const item = items.find(i => i.id === id);
         if (item) {
@@ -373,7 +546,6 @@ html(lang="en")
         }
       }
 
-      // Delete item
       function deleteItem(id) {
         if (confirm('Are you sure you want to delete this item?')) {
           items = items.filter(i => i.id !== id);
@@ -381,7 +553,6 @@ html(lang="en")
         }
       }
 
-      // Clear completed items
       function clearCompleted() {
         const completedCount = items.filter(i => i.completed).length;
         if (completedCount === 0) {
@@ -395,7 +566,6 @@ html(lang="en")
         }
       }
 
-      // Render items
       function renderItems() {
         const itemsList = document.getElementById('itemsList');
         const itemCount = document.getElementById('itemCount');

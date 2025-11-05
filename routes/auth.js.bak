@@ -3,9 +3,12 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+// const mongoose = require('mongoose');
 const { redirectIfAuthenticated } = require('../middleware/auth');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, '..', 'uploads');
@@ -50,13 +53,13 @@ router.get('/login', redirectIfAuthenticated, (req, res) => {
 // POST: Login
 router.post('/login', async (req, res) => {
   try {
-    console.log('📥 Login attempt received:', { email: req.body.email, hasPassword: !!req.body.password });
+    console.log(' Login attempt received:', { email: req.body.email, hasPassword: !!req.body.password });
     
     const { email, password, rememberMe } = req.body;
 
-    // Validate input
+   
     if (!email || !password) {
-      console.log('❌ Missing email or password');
+      console.log('Missing email or password');
       return res.status(400).json({ 
         success: false, 
         message: 'Email and password are required' 
@@ -66,11 +69,10 @@ router.post('/login', async (req, res) => {
     // Find user by email in the database
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     
-    console.log('🔍 User search result:', user ? `Found: ${user.username}` : 'Not found');
+    console.log(' User search result:', user ? `Found: ${user.username}` : 'Not found');
     
-    // If user not found in database
     if (!user) {
-      console.log('❌ User not registered');
+      console.log(' User not registered');
       return res.status(400).json({ 
         success: false, 
         message: 'User not registered. Please create an account first.' 
@@ -80,11 +82,10 @@ router.post('/login', async (req, res) => {
     // Check password using bcrypt compare
     const isMatch = await bcrypt.compare(password, user.password);
     
-    console.log('🔐 Password check:', isMatch ? 'Match' : 'No match');
+    console.log('Password check:', isMatch ? 'Match' : 'No match');
     
-    // If password doesn't match
     if (!isMatch) {
-      console.log('❌ Invalid password');
+      console.log(' Invalid password');
       return res.status(400).json({ 
         success: false, 
         message: 'Invalid email or password' 
@@ -94,26 +95,24 @@ router.post('/login', async (req, res) => {
     // Set user session
     req.session.userId = user._id;
 
-    // Set session cookie with longer expiration if rememberMe is true
     if (rememberMe) {
       req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     } else {
-      req.session.cookie.expires = false; // Session cookie
+      req.session.cookie.expires = false;
     }
 
-    console.log('✅ User logged in:', user.username, '| Session ID:', req.session.id);
+    console.log(' User logged in:', user.username, '| Session ID:', req.session.id);
 
-    // Save the session before sending response
     req.session.save(err => {
       if (err) {
-        console.error('❌ Session save error:', err);
+        console.error(' Session save error:', err);
         return res.status(500).json({ 
           success: false, 
           message: 'Session error. Please try again.' 
         });
       }
 
-      console.log('✅ Session saved successfully');
+      console.log(' Session saved successfully');
       
       res.json({
         success: true,
@@ -128,7 +127,7 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Login error:', error);
+    console.error(' Login error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Server error during login. Please try again.' 
@@ -189,54 +188,135 @@ router.get('/check-email', async (req, res) => {
 
 // POST: Register new user
 router.post('/register', upload.single('profileImage'), async (req, res) => {
+  console.log('Register route hit');
+  console.log('Request body:', req.body);
+  console.log('Uploaded file:', req.file);
+  
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  
   try {
-    const { username, email, password } = req.body;
-
+    const { username, email, password, confirmPassword } = req.body;
+    
     // Validation
     const validationErrors = {};
-
-    // Validate username
-    if (!username || username.trim().length < 3) {
+    
+    // Username validation
+    if (!username || username.trim() === '') {
+      validationErrors.username = 'Username is required';
+    } else if (username.length < 3) {
       validationErrors.username = 'Username must be at least 3 characters';
-    } else if (username.length > 30) {
-      validationErrors.username = 'Username cannot exceed 30 characters';
     } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       validationErrors.username = 'Username can only contain letters, numbers, and underscores';
+    } else if (username.length > 30) {
+      validationErrors.username = 'Username cannot exceed 30 characters';
     }
-
-    // Validate email
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      validationErrors.email = 'Please provide a valid email address';
+    
+    // Email validation
+    if (!email || email.trim() === '') {
+      validationErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      validationErrors.email = 'Please enter a valid email address';
     }
-
-    // Validate password
-    if (!password || password.length < 8) {
+    
+    // Password validation
+    if (!password) {
+      validationErrors.password = 'Password is required';
+    } else if (password.length < 8) {
       validationErrors.password = 'Password must be at least 8 characters';
-    } else {
-      if (!/[A-Z]/.test(password)) {
-        validationErrors.password = 'Password must contain at least one uppercase letter';
-      } else if (!/[a-z]/.test(password)) {
-        validationErrors.password = 'Password must contain at least one lowercase letter';
-      } else if (!/[0-9]/.test(password)) {
-        validationErrors.password = 'Password must contain at least one number';
-      }
+    } else if (!/[A-Z]/.test(password)) {
+      validationErrors.password = 'Password must contain at least one uppercase letter';
+    } else if (!/[a-z]/.test(password)) {
+      validationErrors.password = 'Password must contain at least one lowercase letter';
+    } else if (!/[0-9]/.test(password)) {
+      validationErrors.password = 'Password must contain at least one number';
     }
-
-    // If validation errors, return them
+    
+    // Confirm password
+    if (password !== confirmPassword) {
+      validationErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    // If there are validation errors, return them
     if (Object.keys(validationErrors).length > 0) {
-      // Delete uploaded file if validation fails
-      if (req.file) {
+      await session.abortTransaction();
+      session.endSession();
+      
+      // Clean up uploaded file if validation fails
+      if (req.file && fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
+      
       return res.status(400).json({
         success: false,
+        message: 'Validation failed',
+        errors: validationErrors
+      });
+    }
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [
+        { username: username.trim() },
+        { email: email.trim().toLowerCase() }
+      ]
+    }).session(session);
+    
+    if (existingUser) {
+      await session.abortTransaction();
+      session.endSession();
+      
+      // Clean up uploaded file if user exists
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      if (existingUser.username === username.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username already exists',
+          field: 'username'
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already exists',
+          field: 'email'
+        });
+      }
+    }
+    
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    
+    // Create user
+    const newUser = new User({
+      username: username.trim(),
+      email: email.trim().toLowerCase(),
+      password: hashedPassword,
+      profileImage: req.file ? `/uploads/${req.file.filename}` : null
+    });
+    
+    await newUser.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+    
+    // Remove password from response
+    const userResponse = newUser.toObject();
+    delete userResponse.password;
+    
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user: userResponse
+    });
         message: 'Validation failed',
         errors: validationErrors,
         field: Object.keys(validationErrors)[0]
       });
     }
 
-    // Check if username already exists
     const existingUsername = await User.findOne({ username: username.trim() });
     if (existingUsername) {
       if (req.file) {
@@ -262,18 +342,51 @@ router.post('/register', upload.single('profileImage'), async (req, res) => {
       });
     }
 
-    // Create new user
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [
+        { username: username.trim() },
+        { email: email.trim().toLowerCase() }
+      ]
+    }).session(session);
+    
+    if (existingUser) {
+      await session.abortTransaction();
+      session.endSession();
+      
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      const field = existingUser.email === email.toLowerCase() ? 'email' : 'username';
+      return res.status(400).json({
+        success: false,
+        message: `${field === 'email' ? 'Email' : 'Username'} is already registered`,
+        field: field
+      });
+    }
+
+    // Create new user (let the pre-save hook handle password hashing)
     const newUser = new User({
       username: username.trim(),
       email: email.trim().toLowerCase(),
-      password: password,
+      password: password, // Will be hashed by pre-save hook
       profileImage: req.file ? `/uploads/${req.file.filename}` : '/uploads/default-avatar.png'
     });
 
-    // Save user (password will be hashed automatically by pre-save hook)
-    await newUser.save();
+    console.log('Attempting to save user:', {
+      username: newUser.username,
+      email: newUser.email,
+      hasProfileImage: !!req.file
+    });
+    
+    const savedUser = await newUser.save({ session });
+    console.log('User saved successfully:', savedUser);
+    
+    await session.commitTransaction();
+    session.endSession();
 
-    console.log('✅ New user registered:', username);
+    console.log('New user registered:', username);
 
     res.status(201).json({
       success: true,
@@ -289,13 +402,25 @@ router.post('/register', upload.single('profileImage'), async (req, res) => {
 
   } catch (error) {
     console.error('Registration error:', error);
-
-    // Delete uploaded file if error occurs
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
+    
+    try {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+      }
+    } catch (abortError) {
+      console.error('Error aborting transaction:', abortError);
+    } finally {
+      session.endSession();
+    }
+    
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkError) {
+        console.error('Error deleting uploaded file:', unlinkError);
+      }
     }
 
-    // Handle MongoDB duplicate key errors
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       return res.status(400).json({
@@ -305,7 +430,6 @@ router.post('/register', upload.single('profileImage'), async (req, res) => {
       });
     }
 
-    // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = {};
       Object.keys(error.errors).forEach(key => {
@@ -327,7 +451,6 @@ router.post('/register', upload.single('profileImage'), async (req, res) => {
   }
 });
 
-// GET: Logout
 router.get('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
@@ -338,7 +461,6 @@ router.get('/logout', (req, res) => {
   });
 });
 
-// GET: Check authentication status
 router.get('/check-auth', (req, res) => {
   res.json({ authenticated: !!req.session.userId });
 });
