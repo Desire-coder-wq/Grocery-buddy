@@ -398,10 +398,16 @@ html(lang="en")
         a.nav-btn(href="/auth/logout") Logout
 
     .container
+<<<<<<< HEAD
       #dashboardView.view-section.active
         .welcome
           h2 Welcome back, #{user ? user.username : 'Guest'}! 
           p Manage your shopping list below
+=======
+      .welcome
+        h2 Welcome back, #{user ? user.username : 'Guest'}! 
+        p Manage your shopping list below
+>>>>>>> 01a70e77c1370d735cdf309dce1d5b80f4a05d90
 
         .add-item-section
           h3(style="margin-bottom: 15px; color: #333;") Add New Item

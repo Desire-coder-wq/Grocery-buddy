@@ -3,12 +3,25 @@ const User = require("../models/UserModel");
 const requireAuth = async (req, res, next) => {
   // No session = unauthenticated
   if (!req.session.userId) {
+<<<<<<< HEAD
     // If it's an API route, return JSON instead of redirect
     if (req.originalUrl.startsWith("/api/")) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized - Please log in",
       });
+=======
+    return res.redirect('/auth/login');
+  }
+  
+  try {
+    
+    req.user = await User.findById(req.session.userId).select('-password');
+    if (!req.user) {
+      
+      req.session.destroy();
+      return res.redirect('/auth/login');
+>>>>>>> 01a70e77c1370d735cdf309dce1d5b80f4a05d90
     }
 
     return res.redirect("/auth/login");

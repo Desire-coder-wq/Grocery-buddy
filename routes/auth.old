@@ -10,7 +10,7 @@ const bcrypt = require('bcryptjs');
 const mongoose = require("mongoose");
 
 
-// Create uploads directory if it doesn't exist
+
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -45,12 +45,12 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-// GET: Login page
+// Login page
 router.get('/login', redirectIfAuthenticated, (req, res) => {
   res.render('login', { title: 'Login' });
 });
 
-// POST: Login
+
 router.post('/login', async (req, res) => {
   try {
     console.log(' Login attempt received:', { email: req.body.email, hasPassword: !!req.body.password });
@@ -59,7 +59,11 @@ router.post('/login', async (req, res) => {
 
    
     if (!email || !password) {
+<<<<<<< HEAD:routes/auth.old
       console.log('Missing email or password');
+=======
+      console.log(' Missing email or password');
+>>>>>>> 01a70e77c1370d735cdf309dce1d5b80f4a05d90:routes/auth.js
       return res.status(400).json({ 
         success: false, 
         message: 'Email and password are required' 
@@ -95,6 +99,10 @@ router.post('/login', async (req, res) => {
     // Set user session
     req.session.userId = user._id;
 
+<<<<<<< HEAD:routes/auth.old
+=======
+    
+>>>>>>> 01a70e77c1370d735cdf309dce1d5b80f4a05d90:routes/auth.js
     if (rememberMe) {
       req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     } else {
@@ -103,6 +111,10 @@ router.post('/login', async (req, res) => {
 
     console.log(' User logged in:', user.username, '| Session ID:', req.session.id);
 
+<<<<<<< HEAD:routes/auth.old
+=======
+    
+>>>>>>> 01a70e77c1370d735cdf309dce1d5b80f4a05d90:routes/auth.js
     req.session.save(err => {
       if (err) {
         console.error(' Session save error:', err);
@@ -135,12 +147,11 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET: Register page
+//  Register page
 router.get('/register', redirectIfAuthenticated, (req, res) => {
   res.render('register', { title: 'Register' });
 });
 
-// GET: Check if username exists
 router.get('/check-username', async (req, res) => {
   try {
     const { username } = req.query;
@@ -163,7 +174,7 @@ router.get('/check-username', async (req, res) => {
   }
 });
 
-// GET: Check if email exists
+// Check if email exists
 router.get('/check-email', async (req, res) => {
   try {
     const { email } = req.query;
@@ -186,7 +197,7 @@ router.get('/check-email', async (req, res) => {
   }
 });
 
-// POST: Register new user
+//  Register new user
 router.post('/register', upload.single('profileImage'), async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -353,7 +364,11 @@ router.post('/register', upload.single('profileImage'), async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
+<<<<<<< HEAD:routes/auth.old
     console.log('New user registered:', username);
+=======
+    console.log(' New user registered:', username);
+>>>>>>> 01a70e77c1370d735cdf309dce1d5b80f4a05d90:routes/auth.js
 
     res.status(201).json({
       success: true,

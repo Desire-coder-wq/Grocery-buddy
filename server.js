@@ -10,6 +10,10 @@ const flash = require("connect-flash");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+<<<<<<< HEAD
+=======
+// Connect to MongoDB 
+>>>>>>> 01a70e77c1370d735cdf309dce1d5b80f4a05d90
 const connectDB = require("./config/database");
 connectDB();
 
