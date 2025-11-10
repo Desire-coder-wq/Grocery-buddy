@@ -14,24 +14,16 @@ html
 
       body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         min-height: 100vh;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 20px;
+        padding: 40px;
       }
 
-      .register-container {
-        background: white;
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        width: 100%;
-        max-width: 400px;
-      }
-
-      .back-link {
+      a.back-link {
         color: #667eea;
         text-decoration: none;
         font-size: 0.85em;
@@ -39,7 +31,7 @@ html
         margin-bottom: 15px;
       }
 
-      .back-link:hover {
+      a.back-link:hover {
         text-decoration: underline;
       }
 
@@ -53,6 +45,11 @@ html
         color: #666;
         margin-bottom: 20px;
         font-size: 0.9em;
+      }
+
+      form {
+        width: 100%;
+        max-width: 400px;
       }
 
       .form-group {
@@ -319,60 +316,58 @@ html
       }
 
   body
-    .register-container
-      a.back-link(href="/") ← Back to Home
-      h2 Create Account
-      p.subtitle Join Grocery Buddy today!
-      .alert#alertBox
-      form#registerForm(action="/auth/register" method="POST" enctype="multipart/form-data" novalidate)
-        .form-group
-          label(for="username")
-            | Username 
-            span.required 
-          input#username(type="text", name="username", required, autocomplete="username")
-          .error-message#usernameError
-          .success-message#usernameSuccess
-          
-        .form-group
-          label(for="email")
-            | Email 
-            span.required 
-          input#email(type="email", name="email", required, autocomplete="email")
-          .error-message#emailError
-          .success-message#emailSuccess
-          
-        .form-group
-          label(for="password")
-            | Password 
-            span.required 
-          input#password(type="password", name="password", required, autocomplete="new-password")
-          .error-message#passwordError
-          .password-strength
-            .strength-bar
-              .strength-bar-fill#strengthBar
-            span#strengthText
-          
-        .form-group
-          label(for="confirmPassword")
-            | Confirm Password 
-            span.required 
-          input#confirmPassword(type="password", name="confirmPassword", required, autocomplete="new-password")
-          .error-message#confirmError
-          .success-message#confirmSuccess
-          
-        .form-group
-          label(for="profileImage") Profile Picture (Optional)
-          .profile-upload#profileUploadField
-            .profile-preview#profilePreview
-              span.profile-preview-icon-small 👤
-            .upload-area
-              input#profileImage(type="file", name="profileImage", accept="image/*")
-          .success-message#usernameSuccess
+    a.back-link(href="/") ← Back to Home
+    h2 Create Account
+    p.subtitle Join Grocery Buddy today!
+    .alert#alertBox
+    form#registerForm(action="/auth/register" method="POST" enctype="multipart/form-data" novalidate)
+      .form-group
+        label(for="username")
+          | Username 
+          span.required
+        input#username(type="text", name="username", required, autocomplete="username")
+        .error-message#usernameError
+        .success-message#usernameSuccess
 
-        button.btn#submitBtn(type="submit") Create Account
-        .login-link
-          | Already have an account? 
-          a(href="/auth/login") Login here
+      .form-group
+        label(for="email")
+          | Email 
+          span.required
+        input#email(type="email", name="email", required, autocomplete="email")
+        .error-message#emailError
+        .success-message#emailSuccess
+
+      .form-group
+        label(for="password")
+          | Password 
+          span.required
+        input#password(type="password", name="password", required, autocomplete="new-password")
+        .error-message#passwordError
+        .password-strength
+          .strength-bar
+            .strength-bar-fill#strengthBar
+          span#strengthText
+
+      .form-group
+        label(for="confirmPassword")
+          | Confirm Password 
+          span.required
+        input#confirmPassword(type="password", name="confirmPassword", required, autocomplete="new-password")
+        .error-message#confirmError
+        .success-message#confirmSuccess
+
+      .form-group
+        label(for="profileImage") Profile Picture (Optional)
+        .profile-upload#profileUploadField
+          .profile-preview#profilePreview
+            span.profile-preview-icon-small 👤
+          .upload-area
+            input#profileImage(type="file", name="profileImage", accept="image/*")
+
+      button.btn#submitBtn(type="submit") Create Account
+      .login-link
+        | Already have an account? 
+        a(href="/auth/login") Login here
 
     script.
-      // Your long JavaScript code here (unchanged)
+      // your JavaScript code here (unchanged)

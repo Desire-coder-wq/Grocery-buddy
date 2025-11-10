@@ -13,24 +13,16 @@ html
 
       body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         min-height: 100vh;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 20px;
-      }
-
-      .login-container {
-        background: white;
-        border-radius: 20px;
         padding: 40px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        width: 100%;
-        max-width: 450px;
       }
 
-      .back-link {
+      a.back-link {
         color: #667eea;
         text-decoration: none;
         font-size: 0.9em;
@@ -38,7 +30,7 @@ html
         margin-bottom: 20px;
       }
 
-      .back-link:hover {
+      a.back-link:hover {
         text-decoration: underline;
       }
 
@@ -51,6 +43,22 @@ html
       .subtitle {
         color: #666;
         margin-bottom: 30px;
+      }
+
+      .error-message {
+        background: #fee;
+        color: #c33;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+        width: 100%;
+        max-width: 450px;
+      }
+
+      form {
+        width: 100%;
+        max-width: 450px;
       }
 
       .form-group {
@@ -76,15 +84,6 @@ html
       input:focus {
         outline: none;
         border-color: #667eea;
-      }
-
-      .error-message {
-        background: #fee;
-        color: #c33;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        display: none;
       }
 
       .remember-forgot {
@@ -156,27 +155,26 @@ html
       }
 
   body
-    .login-container
-      a.back-link(href="/") ← Back to Home
-      h2 Welcome Back
-      p.subtitle Login to your account
-      .error-message#errorMessage
-      form#loginForm
-        .form-group
-          label(for="email") Email Address
-          input#email(type="email", name="email", required)
-        .form-group
-          label(for="password") Password
-          input#password(type="password", name="password", required)
-        .remember-forgot
-          label.remember-me
-            input#rememberMe(type="checkbox")
-            span Remember me
-          a.forgot-password(href="#") Forgot password?
-        button.btn#loginBtn(type="submit") Login
-      .register-link
-        | Don't have an account? 
-        a(href="/auth/register") Register here
+    a.back-link(href="/") ← Back to Home
+    h2 Welcome Back
+    p.subtitle Login to your account
+    .error-message#errorMessage
+    form#loginForm
+      .form-group
+        label(for="email") Email Address
+        input#email(type="email", name="email", required)
+      .form-group
+        label(for="password") Password
+        input#password(type="password", name="password", required)
+      .remember-forgot
+        label.remember-me
+          input#rememberMe(type="checkbox")
+          span Remember me
+        a.forgot-password(href="#") Forgot password?
+      button.btn#loginBtn(type="submit") Login
+    .register-link
+      | Don't have an account? 
+      a(href="/auth/register") Register here
 
     script.
       const form = document.getElementById('loginForm');
@@ -185,52 +183,37 @@ html
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         errorMessage.style.display = 'none';
 
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
         const rememberMe = document.getElementById('rememberMe').checked;
 
-        // Basic validation
         if (!email || !password) {
           showError('Please fill in all fields');
           return;
         }
 
-        // Disable button during login
         loginBtn.disabled = true;
         loginBtn.textContent = 'Logging in...';
         
         try {
           const response = await fetch('/auth/login', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-              email, 
-              password,
-              rememberMe
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, rememberMe })
           });
           
           const data = await response.json();
           
-          console.log('Login response:', data);
-          
           if (data.success) {
-            console.log('Login successful, redirecting to:', data.redirect);
-            // Redirect to dashboard on successful login
             window.location.href = data.redirect || '/dashboard';
           } else {
-            console.log('Login failed:', data.message);
             showError(data.message || 'Login failed. Please try again.');
             loginBtn.disabled = false;
             loginBtn.textContent = 'Login';
           }
         } catch (error) {
-          console.error('Login error:', error);
           showError('An error occurred. Please try again.');
           loginBtn.disabled = false;
           loginBtn.textContent = 'Login';
@@ -242,7 +225,6 @@ html
         errorMessage.style.display = 'block';
       }
 
-      // Check if user is already logged in
       window.addEventListener('load', () => {
         fetch('/auth/check-auth')
           .then(response => response.json())

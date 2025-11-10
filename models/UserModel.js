@@ -122,6 +122,29 @@ userSchema.pre('save', async function(next) {
   }
 });
 
+// Add this method to your User schema (before module.exports)
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw new Error('Error comparing passwords');
+  }
+};
+
+// Also make sure you have password hashing on save
+userSchema.pre('save', async function(next) {
+  // Only hash the password if it has been modified (or is new)
+  if (!this.isModified('password')) return next();
+  
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Create indexes for faster queries
 userSchema.index({ email: 1 });
 userSchema.index({ username: 1 });
