@@ -10,10 +10,7 @@ const flash = require("connect-flash");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-<<<<<<< HEAD
-=======
 // Connect to MongoDB 
->>>>>>> 01a70e77c1370d735cdf309dce1d5b80f4a05d90
 const connectDB = require("./config/database");
 connectDB();
 
@@ -146,6 +143,7 @@ const authRoutes = require("./routes/registerRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const { userInViews } = require("./middleware/auth");
+// const itemRoutes = require("./routes/itemRoutes");
 
 app.use(userInViews);
 app.use("/auth", authRoutes);
@@ -153,6 +151,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/", indexRoutes);
+// app.use("/api/items", itemRoutes);
 
 // Catch-all route handler for undefined routes
 app.use((req, res, next) => {

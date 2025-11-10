@@ -1,34 +1,52 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const itemSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Item name is required'],
-        trim: true
-    },
-    quantity: {
-        type: String,
-        default: '1',
-        trim: true
-    },
-    completed: {
-        type: Boolean,
-        default: false
-    },
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+  name: {
+    type: String,
+    required: [true, "Item name is required"],
+    trim: true,
+  },
+  quantity: {
+    type: String,
+    default: "1",
+    trim: true,
+  },
+  price: {
+    type: Number,
+    default: 0,
+  },
+  category: {
+    type: String,
+    enum: [
+      "Food",
+      "Kitchen ware",
+      "Bedroom",
+      "Furniture",
+      "Clothes",
+      "Electronics",
+      "Cleaners",
+      "Other",
+    ],
+    default: "Other",
+  },
+  completed: {
+    type: Boolean,
+    default: false,
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-// Add index for better query performance
-itemSchema.index({ user: 1, completed: 1, createdAt: -1 });
+// Index for faster queries by user and category
+itemSchema.index({ user: 1, category: 1, completed: 1, createdAt: -1 });
 
-const Item = mongoose.model('Item', itemSchema);
+const Item = mongoose.model("Item", itemSchema);
 
 module.exports = Item;

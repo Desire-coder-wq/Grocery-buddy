@@ -1,137 +1,502 @@
-doctype html
-html(lang="en")
-  head
-    meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1")
-    title= title || 'ShopSmart - Your Personal Shopping List'
-    style.
-      * {
+meta(charset="UTF-8")
+meta(name="viewport", content="width=device-width,initial-scale=1")
+title Grocery Buddy - Your Smart Shopping Companion
+style.
+  
+  * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
+  
       body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        overflow-x: hidden;
+      }
+  
+      /* Navbar */
+      .navbar {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-      }
-      .container {
-        max-width: 1200px;
-        padding: 20px;
-        width: 100%;
-      }
-      .hero {
+        padding: 20px 60px;
         background: white;
-        border-radius: 20px;
-        padding: 60px 40px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       }
-      h1 {
-        font-size: 3em;
-        color: #667eea;
-        margin-bottom: 20px;
+  
+      .logo {
+        font-size: 1.8em;
+        font-weight: bold;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
-      .tagline {
-        font-size: 1.3em;
-        color: #666;
-        margin-bottom: 40px;
-      }
-      .features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 30px;
-        margin: 40px 0;
-      }
-      .feature {
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        transition: transform 0.3s;
-      }
-      .feature:hover {
-        transform: translateY(-5px);
-      }
-      .feature-icon {
-        font-size: 3em;
-        margin-bottom: 10px;
-      }
-      .feature h3 {
-        color: #333;
-        margin-bottom: 10px;
-      }
-      .feature p {
-        color: #666;
-        line-height: 1.6;
-      }
-      .cta-buttons {
+  
+      .nav-links {
         display: flex;
-        gap: 20px;
-        justify-content: center;
-        margin-top: 40px;
+        gap: 30px;
+        list-style: none;
       }
-      .btn {
-        padding: 15px 40px;
-        font-size: 1.1em;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
+  
+      .nav-links a {
         text-decoration: none;
+        color: #333;
+        font-weight: 500;
+        transition: color 0.3s;
+      }
+  
+      .nav-links a:hover {
+        color: #667eea;
+      }
+  
+      .nav-buttons {
+        display: flex;
+        gap: 15px;
+      }
+  
+      .btn-login {
+        padding: 10px 25px;
+        background: transparent;
+        border: 2px solid #667eea;
+        color: #667eea;
+        border-radius: 25px;
+        cursor: pointer;
         font-weight: 600;
         transition: all 0.3s;
       }
-      .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-      }
-      .btn-primary:hover {
-        transform: scale(1.05);
-        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-      }
-      .btn-secondary {
-        background: white;
-        color: #667eea;
-        border: 2px solid #667eea;
-      }
-      .btn-secondary:hover {
+  
+      .btn-login:hover {
         background: #667eea;
         color: white;
       }
+  
+      .btn-signup {
+        padding: 10px 25px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: transform 0.3s;
+      }
+  
+      .btn-signup:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+  
+      /* Hero Section */
+      .hero {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        padding: 80px 60px;
+        max-width: 1400px;
+        margin: 0 auto;
+        gap: 60px;
+      }
+  
+      .hero-content h1 {
+        font-size: 3.5em;
+        color: #333;
+        margin-bottom: 20px;
+        line-height: 1.2;
+      }
+  
+      .hero-content .highlight {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+  
+      .hero-content p {
+        font-size: 1.2em;
+        color: #666;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+  
+      .cta-buttons {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+  
+      .btn-primary {
+        padding: 15px 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        border-radius: 30px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+  
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      }
+  
+      .btn-secondary {
+        padding: 15px 40px;
+        background: white;
+        border: 2px solid #667eea;
+        color: #667eea;
+        border-radius: 30px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+  
+      .btn-secondary:hover {
+        background: #f8f9ff;
+      }
+  
+      .stats {
+        display: flex;
+        gap: 40px;
+        margin-top: 20px;
+      }
+  
+      .stat-item {
+        text-align: left;
+      }
+  
+      .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #667eea;
+      }
+  
+      .stat-label {
+        color: #666;
+        font-size: 0.9em;
+      }
+  
+      .hero-image {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+  
+      .basket-container {
+        position: relative;
+        animation: float 3s ease-in-out infinite;
+      }
+  
+      .basket-container img {
+        max-width: 500px;
+        width: 100%;
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.1));
+      }
+  
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+      }
+  
+      .floating-icon {
+        position: absolute;
+        background: white;
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        animation: bounce 2s ease-in-out infinite;
+      }
+  
+      .icon-1 { top: 10%; left: -10%; animation-delay: 0s; }
+      .icon-2 { top: 60%; right: -10%; animation-delay: 0.5s; }
+      .icon-3 { bottom: 10%; left: 10%; animation-delay: 1s; }
+  
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+      }
+  
+      /* Features Section */
+      .features {
+        padding: 80px 60px;
+        background: white;
+      }
+  
+      .section-title {
+        text-align: center;
+        font-size: 2.5em;
+        color: #333;
+        margin-bottom: 50px;
+      }
+  
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+  
+      .feature-card {
+        background: #f8f9fa;
+        padding: 40px 30px;
+        border-radius: 20px;
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+      }
+  
+      .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+      }
+  
+      .feature-icon {
+        font-size: 3.5em;
+        margin-bottom: 20px;
+      }
+  
+      .feature-card h3 {
+        font-size: 1.4em;
+        color: #333;
+        margin-bottom: 15px;
+      }
+  
+      .feature-card p {
+        color: #666;
+        line-height: 1.6;
+      }
+  
+      /* How It Works */
+      .how-it-works {
+        padding: 80px 60px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      }
+  
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+  
+      .step {
+        text-align: center;
+        position: relative;
+      }
+  
+      .step-number {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5em;
+        font-weight: bold;
+        margin: 0 auto 20px;
+      }
+  
+      .step h3 {
+        font-size: 1.3em;
+        color: #333;
+        margin-bottom: 10px;
+      }
+  
+      .step p {
+        color: #666;
+        line-height: 1.6;
+      }
+  
+      /* CTA Section */
+      .cta-section {
+        padding: 80px 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        text-align: center;
+        color: white;
+      }
+  
+      .cta-section h2 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+      }
+  
+      .cta-section p {
+        font-size: 1.2em;
+        margin-bottom: 40px;
+        opacity: 0.9;
+      }
+  
+      .btn-cta {
+        padding: 15px 50px;
+        background: white;
+        color: #667eea;
+        border: none;
+        border-radius: 30px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+  
+      .btn-cta:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      }
+  
+      /* Footer */
+      footer {
+        padding: 40px 60px;
+        background: #1a1a1a;
+        color: white;
+        text-align: center;
+      }
+  
+      footer p {
+        opacity: 0.8;
+      }
+  
+      /* Mobile Responsive */
       @media (max-width: 768px) {
-        h1 {
-          font-size: 2em;
+        .navbar {
+          padding: 15px 30px;
         }
-        .tagline {
-          font-size: 1.1em;
+  
+        .nav-links {
+          display: none;
         }
+  
+        .hero {
+          grid-template-columns: 1fr;
+          padding: 40px 30px;
+          text-align: center;
+        }
+  
+        .hero-content h1 {
+          font-size: 2.5em;
+        }
+  
         .cta-buttons {
           flex-direction: column;
         }
-        .hero {
-          padding: 40px 20px;
+  
+        .stats {
+          justify-content: center;
+        }
+  
+        .basket-container img {
+          max-width: 350px;
+        }
+  
+        .features, .how-it-works, .cta-section {
+          padding: 60px 30px;
         }
       }
-  body
-    .container
-      .hero
-        h1 🛒 My Grocery Budddy
-        p.tagline Your Personal Shopping List Manager
-        .features
-          .feature
-            .feature-icon 📝
-            h3 Easy Organization
-            p Create and manage your shopping lists effortlessly with our intuitive interface
-          .feature
-            .feature-icon ☁️
-            h3 Cloud Sync
-            p Access your lists from anywhere, anytime on any device
-          .feature
-            .feature-icon 🔒
-            h3 Secure & Private
-            p Your data is protected with secure authentication and encryption
-        .cta-buttons
-          a.btn.btn-primary(href="/auth/register") Get Started
-          a.btn.btn-secondary(href="/auth/login") Login
+  
+//  Navbar 
+nav.navbar
+  .logo 🛒 Grocery Buddy
+  ul.nav-links
+    li
+      a(href="#features") Features
+    li
+      a(href="#how-it-works") How It Works
+    li
+      a(href="#about") About
+    li
+      a(href="#contact") Contact
+  .nav-buttons
+    button.btn-login(onclick="window.location.href=\'/auth/login\'") Login
+    button.btn-signup(onclick="window.location.href=\'/auth/register\'") Sign Up
+//  Hero Section 
+section.hero
+  .hero-content
+    h1
+      | Manage Your 
+      span.highlight Grocery List
+      |  Effortlessly
+    p Never forget an item again. Create, organize, and share your shopping lists with Grocery Buddy - your smart shopping companion.
+    .cta-buttons
+      button.btn-primary(onclick="window.location.href=\'/auth/register\'") Get Started Free
+      button.btn-secondary(onclick="window.location.href=\'#how-it-works\'") Learn More
+    .stats
+      .stat-item
+        .stat-number 10K+
+        .stat-label Active Users
+      .stat-item
+        .stat-number 50K+
+        .stat-label Lists Created
+      .stat-item
+        .stat-number 4.8★
+        .stat-label User Rating
+  .hero-image
+    .basket-container
+      img(src="https://images.unsplash.com/photo-1543168256-418811576931?w=800&q=80", alt="Fresh Groceries")
+      .floating-icon.icon-1 ✅
+      .floating-icon.icon-2 📝
+      .floating-icon.icon-3 🛒
+//  Features Section 
+section.features#features
+  h2.section-title Why Choose Grocery Buddy?
+  .features-grid
+    .feature-card
+      .feature-icon 📝
+      h3 Quick Add Items
+      p Add items to your list in seconds. Simple, fast, and intuitive interface.
+    .feature-card
+      .feature-icon ✅
+      h3 Check Off Purchases
+      p Mark items as complete while shopping. Never buy duplicates again.
+    .feature-card
+      .feature-icon 📊
+      h3 Track Statistics
+      p See your shopping patterns and manage your grocery habits effectively.
+    .feature-card
+      .feature-icon 💾
+      h3 Save Favorites
+      p Store frequently bought items for quick access next time.
+    .feature-card
+      .feature-icon 🔒
+      h3 Secure & Private
+      p Your lists are safe with us. End-to-end encryption for your data.
+    .feature-card
+      .feature-icon 📱
+      h3 Access Anywhere
+      p Use on any device. Your lists sync automatically across all platforms.
+//  How It Works 
+section.how-it-works#how-it-works
+  h2.section-title How It Works
+  .steps
+    .step
+      .step-number 1
+      h3 Sign Up Free
+      p Create your account in less than 30 seconds. No credit card required.
+    .step
+      .step-number 2
+      h3 Create Your List
+      p Start adding items to your shopping list. Organize by category or quantity.
+    .step
+      .step-number 3
+      h3 Shop Smart
+      p Check off items as you shop. Keep track of what you've bought.
+    .step
+      .step-number 4
+      h3 Save & Repeat
+      p Save your favorite lists and reuse them for future shopping trips.
+//  CTA Section 
+section.cta-section
+  h2 Ready to Simplify Your Shopping?
+  p Join thousands of smart shoppers who never forget an item.
+  button.btn-cta(onclick="window.location.href=\'/auth/register\'") Start Your Free Account
+//  Footer 
+footer
+  p © 2024 Grocery Buddy. All rights reserved. | Privacy Policy | Terms of Service

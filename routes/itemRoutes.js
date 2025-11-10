@@ -1,227 +1,254 @@
-const express = require('express');
+const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
-const mongoose = require('mongoose');
-const Item = require('../models/ItemModel');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth } = require("../middleware/auth");
+const Item = require("../models/ItemModel");
 
-// Helper function to handle errors
-const handleError = (res, error, message) => {
-    console.error(`${message}:`, error);
-    res.status(500).json({ 
-        success: false, 
-        message: error.message || 'Server error' 
+// --------------------
+// Helper: Validate MongoDB ObjectId
+// --------------------
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+// --------------------
+// Helper: Normalize category to title case
+// --------------------
+function normalizeCategory(cat) {
+  if (!cat) return 'Other';
+  return cat.toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+// --------------------
+// Get all items
+// --------------------
+router.get("/", requireAuth, async (req, res) => {
+  try {
+    let items = await Item.find({ user: req.session.userId })
+      .select('name quantity category completed createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
+    
+    // Normalize categories for all items
+    items = items.map(item => ({
+      ...item,
+      category: normalizeCategory(item.category)
+    }));
+    
+    console.log('Sending items to client:', items);
+    res.json({ success: true, items, count: items.length });
+  } catch (error) {
+    console.error("Error fetching items:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch items" });
+  }
+});
+
+// --------------------
+// Get single item
+// --------------------
+router.get("/:id", requireAuth, async (req, res) => {
+  if (!isValidObjectId(req.params.id))
+    return res.status(400).json({ success: false, message: "Invalid item ID" });
+
+  try {
+    const item = await Item.findOne({
+      _id: req.params.id,
+      user: req.session.userId,
     });
-};
+    if (!item)
+      return res
+        .status(404)
+        .json({ success: false, message: "Item not found" });
 
-// @route   GET /api/items
-// @desc    Get all items for the logged-in user
-// @access  Private
-router.get('/', requireAuth, async (req, res) => {
-    try {
-        const items = await Item.find({ user: req.session.userId })
-            .sort({ createdAt: -1 });
-        
-        res.json({
-            success: true,
-            count: items.length,
-            data: items
-        });
-    } catch (error) {
-        handleError(res, error, 'Error fetching items');
-    }
+    res.json({ success: true, item });
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch item" });
+  }
 });
 
-// @route   GET /api/items/:id
-// @desc    Get single item
-// @access  Private
-router.get('/:id', requireAuth, async (req, res) => {
-    try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid item ID' 
-            });
-        }
+// --------------------
+// Create new item
+// --------------------
+router.post("/", requireAuth, async (req, res) => {
+  try {
+    const { name, quantity, category } = req.body;
 
-        const item = await Item.findOne({ 
-            _id: req.params.id, 
-            user: req.session.userId 
-        });
+    if (!name || name.trim() === "")
+      return res
+        .status(400)
+        .json({ success: false, message: "Item name is required" });
 
-        if (!item) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Item not found' 
-            });
-        }
+    const newItem = new Item({
+      name: name.trim(),
+      quantity: quantity ? quantity.trim() : "1",
+      category: normalizeCategory(category),
+      user: req.session.userId,
+      completed: false,
+    });
+    
+    console.log('Creating new item with category:', newItem.category);
 
-        res.json({ success: true, data: item });
-    } catch (error) {
-        handleError(res, error, 'Error fetching item');
-    }
+    await newItem.save();
+    res.status(201).json({
+      success: true,
+      message: "Item created successfully",
+      item: newItem,
+    });
+  } catch (error) {
+    console.error("Error creating item:", error);
+    res.status(500).json({ success: false, message: "Failed to create item" });
+  }
 });
 
-// @route   POST /api/items
-// @desc    Create a new item
-// @access  Private
-router.post('/', requireAuth, async (req, res) => {
-    try {
-        console.log('Request body:', req.body);
-        console.log('Session user ID:', req.session.userId);
-        
-        const { name, quantity = '1' } = req.body;
-
-        // Validation
-        if (!name || typeof name !== 'string' || name.trim() === '') {
-            console.log('Validation failed: Item name is required');
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Item name is required' 
-            });
-        }
-
-        console.log('Creating new item with:', { name, quantity, userId: req.session.userId });
-        
-        const newItem = new Item({
-            name: name.trim(),
-            quantity: quantity.toString().trim(),
-            user: req.session.userId
-        });
-
-        console.log('New item object:', newItem);
-        
-        const savedItem = await newItem.save();
-        console.log('Item saved successfully:', savedItem);
-        
-        res.status(201).json({
-            success: true,
-            message: 'Item created successfully',
-            data: savedItem
-        });
-    } catch (error) {
-        console.error('Error in POST /api/items:', error);
-        handleError(res, error, 'Error creating item');
-    }
+// --------------------
+// Delete all completed items
+// --------------------
+router.delete("/completed/clear", requireAuth, async (req, res) => {
+  try {
+    const result = await Item.deleteMany({
+      user: req.session.userId,
+      completed: true,
+    });
+    res.json({
+      success: true,
+      message: `${result.deletedCount} completed item(s) deleted`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error clearing completed items:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to clear completed items" });
+  }
 });
 
-// @route   PUT /api/items/:id
-// @desc    Update an item
-// @access  Private
-router.put('/:id', requireAuth, async (req, res) => {
-    try {
-        const { name, quantity, completed } = req.body;
-        
-        // Basic validation
-        if (name && (typeof name !== 'string' || name.trim() === '')) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid item name' 
-            });
-        }
+// --------------------
+// Delete single item
+// --------------------
+router.delete("/:id", requireAuth, async (req, res) => {
+  if (!isValidObjectId(req.params.id))
+    return res.status(400).json({ success: false, message: "Invalid item ID" });
 
-        const updateFields = {};
-        if (name) updateFields.name = name.trim();
-        if (quantity !== undefined) updateFields.quantity = quantity.toString().trim();
-        if (completed !== undefined) updateFields.completed = completed;
+  try {
+    const item = await Item.findOneAndDelete({
+      _id: req.params.id,
+      user: req.session.userId,
+    });
+    if (!item)
+      return res
+        .status(404)
+        .json({ success: false, message: "Item not found" });
 
-        const updatedItem = await Item.findOneAndUpdate(
-            { _id: req.params.id, user: req.session.userId },
-            { $set: updateFields },
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedItem) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Item not found' 
-            });
-        }
-
-        res.json({
-            success: true,
-            message: 'Item updated successfully',
-            data: updatedItem
-        });
-    } catch (error) {
-        handleError(res, error, 'Error updating item');
-    }
+    res.json({
+      success: true,
+      message: "Item deleted successfully",
+      deletedItem: item,
+    });
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    res.status(500).json({ success: false, message: "Failed to delete item" });
+  }
 });
 
-// @route   PATCH /api/items/:id/toggle
-// @desc    Toggle item completion status
-// @access  Private
-router.patch('/:id/toggle', requireAuth, async (req, res) => {
-    try {
-        const item = await Item.findOne({ 
-            _id: req.params.id, 
-            user: req.session.userId 
-        });
-        
-        if (!item) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Item not found' 
-            });
-        }
+// --------------------
+// Update item (PUT / PATCH)
+// --------------------
+router
+  .route("/:id")
+  .put(requireAuth, updateItem)
+  .patch(requireAuth, updateItem);
 
-        item.completed = !item.completed;
-        const updatedItem = await item.save();
-        
-        res.json({
-            success: true,
-            message: 'Item toggled successfully',
-            data: updatedItem
-        });
-    } catch (error) {
-        handleError(res, error, 'Error toggling item');
-    }
+async function updateItem(req, res) {
+  if (!isValidObjectId(req.params.id))
+    return res.status(400).json({ success: false, message: "Invalid item ID" });
+
+  try {
+    const { name, quantity, completed, category } = req.body;
+    const item = await Item.findOne({
+      _id: req.params.id,
+      user: req.session.userId,
+    });
+    if (!item)
+      return res
+        .status(404)
+        .json({ success: false, message: "Item not found" });
+
+    if (name !== undefined && name.trim() !== "") item.name = name.trim();
+    if (quantity !== undefined) item.quantity = quantity.trim();
+    if (category !== undefined) item.category = category;
+    if (completed !== undefined) item.completed = completed;
+
+    await item.save();
+    res.json({ success: true, message: "Item updated successfully", item });
+  } catch (error) {
+    console.error("Error updating item:", error);
+    res.status(500).json({ success: false, message: "Failed to update item" });
+  }
+}
+
+// --------------------
+// Toggle completion
+// --------------------
+router.patch("/:id/toggle", requireAuth, async (req, res) => {
+  if (!isValidObjectId(req.params.id))
+    return res.status(400).json({ success: false, message: "Invalid item ID" });
+
+  try {
+    const item = await Item.findOne({
+      _id: req.params.id,
+      user: req.session.userId,
+    });
+    if (!item)
+      return res
+        .status(404)
+        .json({ success: false, message: "Item not found" });
+
+    item.completed = !item.completed;
+    await item.save();
+
+    res.json({
+      success: true,
+      message: `Item marked as ${item.completed ? "completed" : "incomplete"}`,
+      item,
+    });
+  } catch (error) {
+    console.error("Error toggling item:", error);
+    res.status(500).json({ success: false, message: "Failed to toggle item" });
+  }
 });
 
-// @route   DELETE /api/items/:id
-// @desc    Delete an item
-// @access  Private
-router.delete('/:id', requireAuth, async (req, res) => {
-    try {
-        const deletedItem = await Item.findOneAndDelete({ 
-            _id: req.params.id, 
-            user: req.session.userId 
-        });
-        
-        if (!deletedItem) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Item not found' 
-            });
-        }
-        
-        res.json({
-            success: true,
-            message: 'Item deleted successfully',
-            data: { id: req.params.id }
-        });
-    } catch (error) {
-        handleError(res, error, 'Error deleting item');
-    }
-});
+// --------------------
+// Get statistics
+// --------------------
+router.get("/stats/summary", requireAuth, async (req, res) => {
+  try {
+    const totalItems = await Item.countDocuments({ user: req.session.userId });
+    const completedItems = await Item.countDocuments({
+      user: req.session.userId,
+      completed: true,
+    });
+    const pendingItems = totalItems - completedItems;
 
-// @route   DELETE /api/items
-// @desc    Clear all completed items
-// @access  Private
-router.delete('/', requireAuth, async (req, res) => {
-    try {
-        const result = await Item.deleteMany({ 
-            user: req.session.userId,
-            completed: true 
-        });
-        
-        res.json({
-            success: true,
-            message: `Successfully deleted ${result.deletedCount} completed items`,
-            data: result
-        });
-    } catch (error) {
-        handleError(res, error, 'Error clearing completed items');
-    }
+    res.json({
+      success: true,
+      stats: {
+        totalItems,
+        completedItems,
+        pendingItems,
+        completionRate:
+          totalItems > 0 ? ((completedItems / totalItems) * 100).toFixed(1) : 0,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching statistics:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch statistics" });
+  }
 });
 
 module.exports = router;
