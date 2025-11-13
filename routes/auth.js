@@ -104,7 +104,7 @@ app.get('/', (req, res) => {
  * 404 Handler
  */
 app.use((req, res, next) => {
-  console.log(`❌ 404 - Route not found: ${req.method} ${req.originalUrl}`);
+  console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`);
   
   // Check if it's an API request
   if (req.originalUrl.startsWith('/api/')) {
@@ -125,7 +125,7 @@ app.use((req, res, next) => {
  * Global Error Handler
  */
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err);
+  console.error(' Error:', err);
   
   // Multer file upload errors
   if (err.message && err.message.includes('Only image files')) {

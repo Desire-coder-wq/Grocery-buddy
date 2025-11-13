@@ -6,7 +6,7 @@ router.get(['/', '/index'], (req, res) => {
     console.log('Rendering index page...');
     try {
         res.render('index', { 
-            title: 'ShopSmart - Your Personal Shopping List',
+            title: 'Grocery-buddy - Your Personal Shopping List',
             user: req.session.user || null
         });
     } catch (error) {

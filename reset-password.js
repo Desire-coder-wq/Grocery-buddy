@@ -9,7 +9,7 @@ async function resetPassword() {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-    console.log('✅ Connected to MongoDB');
+    console.log(' Connected to MongoDB');
 
     // Get the User model
     const User = require('./models/UserModel');
@@ -18,7 +18,7 @@ async function resetPassword() {
     const user = await User.findOne({ email: 'emily@gmail.com' });
     
     if (!user) {
-      console.log('❌ User not found');
+      console.log(' User not found');
       return;
     }
 
@@ -41,16 +41,16 @@ async function resetPassword() {
     user.password = hashedPassword;
     await user.save();
     
-    console.log('\n✅ Password has been reset successfully');
+    console.log('\n Password has been reset successfully');
     console.log('New hash stored in database');
     
     // Verify the new password
     console.log('\n=== VERIFYING NEW PASSWORD ===');
     const isMatch = await bcrypt.compare(newPassword, user.password);
-    console.log('Password verification result:', isMatch ? '✅ SUCCESS' : '❌ FAILED');
+    console.log('Password verification result:', isMatch ? ' SUCCESS' : ' FAILED');
     
   } catch (error) {
-    console.error('❌ Error resetting password:', error);
+    console.error(' Error resetting password:', error);
   } finally {
     mongoose.connection.close();
   }

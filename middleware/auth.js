@@ -10,7 +10,7 @@ const requireAuth = async (req, res, next) => {
         message: "Unauthorized - Please log in",
       });
     }
-
+    console.log("when not logged in");
     return res.redirect("/auth/login");
   }
 
@@ -28,7 +28,7 @@ const requireAuth = async (req, res, next) => {
           message: "User not found - Please log in again",
         });
       }
-
+      console.log("user not found");
       return res.redirect("/auth/login");
     }
 
@@ -49,15 +49,22 @@ const requireAuth = async (req, res, next) => {
 };
 
 const redirectIfAuthenticated = (req, res, next) => {
-  if (req.session.userId) {
+  console.log("=== Checking if user is authenticated ===");
+  console.log("Session ID:", req.sessionID);
+  console.log("User ID in session:", req.session?.userId);
+  
+  if (req.session?.userId) {
+    console.log("✅ User is authenticated, redirecting to dashboard");
     return res.redirect("/dashboard");
   }
+  
+  console.log("❌ User is not authenticated, proceeding to login/register page");
   next();
 };
 
 const userInViews = (req, res, next) => {
   res.locals.user = req.user || null;
-  res.locals.isAuthenticated = !!req.session.userId;
+  res.locals.isAuthenticated = !!req.session?.userId;
   next();
 };
 

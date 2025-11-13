@@ -38,45 +38,23 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt automatically
+    timestamps: true,
   }
 );
 
-// Method to compare password
+// ✅ KEEP THIS VERSION - Remove the duplicate one below
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     console.log('\n=== PASSWORD COMPARISON ===');
-    console.log('Candidate password:', `"${candidatePassword}" (length: ${candidatePassword ? candidatePassword.length : 0})`);
-    console.log('Stored hash:', this.password ? `"${this.password}" (length: ${this.password.length})` : 'No hash found');
+    console.log('Candidate password:', `"${candidatePassword}"`);
+    console.log('Stored hash exists:', !!this.password);
     
     if (!candidatePassword || !this.password) {
       console.log('❌ Missing password or hash for comparison');
       return false;
     }
     
-    // Check if the stored password is already hashed
-    const isHash = /^\$2[aby]\$\d{2}\$[.\/A-Za-z0-9]{53}$/.test(this.password);
-    console.log('Stored password is hashed:', isHash);
-    
-    if (!isHash) {
-      console.log('⚠️ Stored password is not a valid bcrypt hash');
-      // If it's not a hash, do a direct comparison (for testing)
-      const directMatch = candidatePassword === this.password;
-      console.log('Direct comparison result:', directMatch);
-      return directMatch;
-    }
-    
-    // If it is a hash, compare using bcrypt
-    console.log('Comparing using bcrypt...');
     const isMatch = await bcrypt.compare(candidatePassword, this.password);
-    
-    if (!isMatch) {
-      // For debugging: hash the candidate password to see what it would look like
-      const testHash = await bcrypt.hash(candidatePassword, 10);
-      console.log('Test hash of provided password:', testHash);
-      console.log('Does test hash match stored hash?', testHash === this.password);
-    }
-    
     console.log('✅ Password comparison result:', isMatch);
     return isMatch;
   } catch (error) {
@@ -85,7 +63,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   }
 };
 
-// Hash password before saving
+// ✅ KEEP THIS VERSION - Remove the duplicate one below
 userSchema.pre('save', async function(next) {
   // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) {
@@ -95,34 +73,30 @@ userSchema.pre('save', async function(next) {
   
   try {
     console.log('\n=== PASSWORD HASHING ===');
-    console.log('Original password:', this.password);
+    console.log('Original password before hash:', this.password);
     
-    // Check if password is already hashed
+    // Check if password is already hashed (shouldn't be, but just in case)
     const isAlreadyHashed = /^\$2[aby]\$\d{2}\$[.\/A-Za-z0-9]{53}$/.test(this.password);
     if (isAlreadyHashed) {
       console.log('Password is already hashed, skipping re-hash');
       return next();
     }
     
-    console.log('Generating salt...');
     const salt = await bcrypt.genSalt(10);
-    console.log('Salt generated:', salt);
-    
-    console.log('Hashing password...');
     const hashedPassword = await bcrypt.hash(this.password, salt);
-    console.log('Password hashed successfully');
     
     this.password = hashedPassword;
-    console.log('New password hash:', hashedPassword);
+    console.log('Password hashed successfully');
     
     next();
   } catch (error) {
-    console.error('❌ Error hashing password:', error);
+    console.error(' Error hashing password:', error);
     next(error);
   }
 });
 
-// Add this method to your User schema (before module.exports)
+// 🚨 REMOVE THESE DUPLICATE METHODS (they appear later in your file):
+/*
 userSchema.methods.comparePassword = async function(candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
@@ -131,9 +105,7 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   }
 };
 
-// Also make sure you have password hashing on save
 userSchema.pre('save', async function(next) {
-  // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) return next();
   
   try {
@@ -144,6 +116,7 @@ userSchema.pre('save', async function(next) {
     next(error);
   }
 });
+*/
 
 // Create indexes for faster queries
 userSchema.index({ email: 1 });

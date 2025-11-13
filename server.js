@@ -138,20 +138,24 @@ app.use((req, res, next) => {
   next();
 });
 
+// Import routes
 const indexRoutes = require("./routes/indexRoutes");
 const authRoutes = require("./routes/registerRoutes");
+const loginRoutes = require("./routes/loginRoutes"); // NEW: Import login routes
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const { userInViews } = require("./middleware/auth");
-// const itemRoutes = require("./routes/itemRoutes");
 
+
+// Apply middleware
 app.use(userInViews);
-app.use("/auth", authRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/items", itemRoutes);
-app.use("/dashboard", dashboardRoutes);
-app.use("/", indexRoutes);
-// app.use("/api/items", itemRoutes);
+
+// Mount routes
+app.use("/auth", loginRoutes);        // NEW: Login routes at /auth/login, /auth/logout, /auth/check-auth
+app.use("/auth", authRoutes);         // Register routes at /auth/register
+app.use("/api/items", itemRoutes);    // Item API routes
+app.use("/dashboard", dashboardRoutes); // Dashboard routes
+app.use("/", indexRoutes);            // Index routes
 
 // Catch-all route handler for undefined routes
 app.use((req, res, next) => {

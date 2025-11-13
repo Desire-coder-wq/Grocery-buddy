@@ -1,460 +1,395 @@
-const User = require('../models/UserModel');
-const bcrypt = require('bcryptjs');
-const path = require('path');
-const fs = require('fs');
+const bcrypt = require("bcryptjs");
+const User = require("../models/UserModel");
+const fs = require("fs");
+const path = require("path");
 
-/**
- * User Controller
- * Handles user registration and authentication
- */
+// --------------------
+// Validation Helper
+// --------------------
+const validateRegistrationData = (data) => {
+  const { username, email, password, confirmPassword } = data;
+  const errors = {};
 
-const userController = {
-  /**
-   * Register a new user
-   */
-  register: async (req, res, profileImage) => {
-    try {
-      console.log('\n=== REGISTRATION PROCESS STARTED ===');
-      const { username, email, password, confirmPassword } = req.body;
+  // Username validation
+  if (!username || username.trim() === "") {
+    errors.username = "Username is required";
+  } else if (username.length < 3) {
+    errors.username = "Username must be at least 3 characters";
+  } else if (username.length > 30) {
+    errors.username = "Username cannot exceed 30 characters";
+  } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    errors.username =
+      "Username can only contain letters, numbers, and underscores";
+  }
 
-      // Validation checks
-      const errors = {};
+  // Email validation
+  if (!email || email.trim() === "") {
+    errors.email = "Email is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.email = "Please provide a valid email address";
+  }
 
-      // Check required fields
-      if (!username || username.trim() === '') {
-        errors.username = 'Username is required';
-      } else if (username.length < 3) {
-        errors.username = 'Username must be at least 3 characters';
-      } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-        errors.username = 'Username can only contain letters, numbers, and underscores';
+  // Password validation
+  if (!password) {
+    errors.password = "Password is required";
+  } else if (password.length < 8) {
+    errors.password = "Password must be at least 8 characters";
+  } else if (!/[A-Z]/.test(password)) {
+    errors.password = "Password must contain at least one uppercase letter";
+  } else if (!/[a-z]/.test(password)) {
+    errors.password = "Password must contain at least one lowercase letter";
+  } else if (!/[0-9]/.test(password)) {
+    errors.password = "Password must contain at least one number";
+  }
+
+  // Confirm password validation
+  if (password !== confirmPassword) {
+    errors.confirmPassword = "Passwords do not match";
+  }
+
+  return errors;
+};
+
+// --------------------
+// Register User
+// --------------------
+exports.registerUser = async (req, res) => {
+  console.log("\n=== REGISTRATION ATTEMPT ===");
+  console.log("Body:", req.body);
+  console.log("File:", req.file ? req.file.filename : "No file uploaded");
+
+  try {
+    const { username, email, password, confirmPassword } = req.body;
+
+    // Validate input data
+    const validationErrors = validateRegistrationData(req.body);
+
+    if (Object.keys(validationErrors).length > 0) {
+      // Delete uploaded file if validation fails
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
       }
-
-      if (!email || email.trim() === '') {
-        errors.email = 'Email is required';
-      } else if (!/^\S+@\S+\.\S+$/.test(email)) {
-        errors.email = 'Please provide a valid email';
-      }
-
-      if (!password) {
-        errors.password = 'Password is required';
-      } else if (password.length < 8) {
-        errors.password = 'Password must be at least 8 characters';
-      }
-
-      if (!confirmPassword) {
-        errors.confirmPassword = 'Please confirm your password';
-      } else if (password !== confirmPassword) {
-        errors.confirmPassword = 'Passwords do not match';
-      }
-
-      // Check for existing user
-      if (!errors.username) {
-        const existingUser = await User.findOne({ 
-          username: username.trim().toLowerCase() 
-        });
-        if (existingUser) {
-          errors.username = 'Username already taken';
-        }
-      }
-
-      if (!errors.email) {
-        const existingEmail = await User.findOne({ 
-          email: email.trim().toLowerCase() 
-        });
-        if (existingEmail) {
-          errors.email = 'Email already registered';
-        }
-      }
-
-      // If there are validation errors
-      if (Object.keys(errors).length > 0) {
-        console.log(' Validation errors:', errors);
-        return {
-          success: false,
-          status: 400,
-          message: 'Please fix the errors below',
-          errors: errors,
-          deleteFile: !!profileImage // Delete file if validation fails
-        };
-      }
-
-      console.log(' All validation passed');
-
-      // Create user object
-      const userData = {
-        username: username.trim(),
-        email: email.trim().toLowerCase(),
-        password: password // Will be hashed by pre-save middleware
-      };
-
-      // Handle profile image
-      if (profileImage) {
-        userData.profileImage = `/uploads/${profileImage.filename}`;
-        console.log('📸 Profile image saved:', userData.profileImage);
-      }
-
-      console.log('👤 Creating user with data:', {
-        ...userData,
-        password: '***' // Hide password in logs
+      console.log("❌ Validation failed:", validationErrors);
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: validationErrors,
       });
-
-      // Create and save user
-      const user = new User(userData);
-      await user.save();
-
-      console.log(' User created successfully:', user._id);
-
-      // Set user session
-      req.session.userId = user._id;
-      req.session.username = user.username;
-      req.session.email = user.email;
-      req.session.profileImage = user.profileImage;
-
-      console.log('🔐 User session created');
-
-      return {
-        success: true,
-        status: 201,
-        message: 'Registration successful! Welcome to Grocery Buddy!',
-        redirectTo: '/dashboard',
-        deleteFile: false // Keep the file since registration succeeded
-      };
-
-    } catch (error) {
-      console.error('\n REGISTRATION CONTROLLER ERROR:', error);
-
-      // Handle duplicate key errors (should be caught by validation but just in case)
-      if (error.code === 11000) {
-        const field = Object.keys(error.keyPattern)[0];
-        const message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-        
-        return {
-          success: false,
-          status: 400,
-          message: message,
-          errors: { [field]: message },
-          deleteFile: !!profileImage
-        };
-      }
-
-      // Handle validation errors from mongoose
-      if (error.name === 'ValidationError') {
-        const errors = {};
-        Object.keys(error.errors).forEach(key => {
-          errors[key] = error.errors[key].message;
-        });
-
-        return {
-          success: false,
-          status: 400,
-          message: 'Please fix the errors below',
-          errors: errors,
-          deleteFile: !!profileImage
-        };
-      }
-
-      // Generic server error
-      return {
-        success: false,
-        status: 500,
-        message: 'Server error during registration',
-        deleteFile: !!profileImage
-      };
     }
-  },
 
-  /**
-   * Login user
-   */
-  login: async (req, res) => {
-    try {
-      console.log('\n=== LOGIN ATTEMPT ===');
-      const { email, password } = req.body;
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [
+        { username: username.trim() },
+        { email: email.trim().toLowerCase() },
+      ],
+    });
 
-      // Validation
-      const errors = {};
-
-      if (!email || email.trim() === '') {
-        errors.email = 'Email is required';
+    if (existingUser) {
+      // Delete uploaded file if user exists
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
       }
 
-      if (!password) {
-        errors.password = 'Password is required';
-      }
+      const field =
+        existingUser.email === email.trim().toLowerCase()
+          ? "email"
+          : "username";
+      console.log(` ${field} already exists:`, existingUser[field]);
 
-      if (Object.keys(errors).length > 0) {
-        return {
-          success: false,
-          status: 400,
-          message: 'Please fix the errors below',
-          errors: errors
-        };
-      }
-
-      // Find user by email
-      const user = await User.findOne({ email: email.trim().toLowerCase() });
-      
-      if (!user) {
-        console.log(' User not found with email:', email);
-        return {
-          success: false,
-          status: 401,
-          message: 'Invalid email or password',
-          errors: { email: 'Invalid email or password' }
-        };
-      }
-
-      console.log(' User found:', user.username);
-
-      // Compare passwords
-      console.log(' Comparing passwords...');
-      const isPasswordValid = await user.comparePassword(password);
-      
-      if (!isPasswordValid) {
-        console.log(' Invalid password');
-        return {
-          success: false,
-          status: 401,
-          message: 'Invalid email or password',
-          errors: { password: 'Invalid email or password' }
-        };
-      }
-
-      console.log(' Password valid');
-
-      // Set user session
-      req.session.userId = user._id;
-      req.session.username = user.username;
-      req.session.email = user.email;
-      req.session.profileImage = user.profileImage;
-
-      console.log(' Login session created for user:', user.username);
-
-      return {
-        success: true,
-        status: 200,
-        message: 'Login successful!',
-        redirectTo: '/dashboard'
-      };
-
-    } catch (error) {
-      console.error('\n LOGIN CONTROLLER ERROR:', error);
-      return {
+      return res.status(400).json({
         success: false,
-        status: 500,
-        message: 'Server error during login'
-      };
-    }
-  },
-
-  /**
-   * Get user profile
-   */
-  getProfile: async (req, res) => {
-    try {
-      const user = await User.findById(req.user._id).select('-password');
-      
-      if (!user) {
-        return {
-          success: false,
-          status: 404,
-          message: 'User not found'
-        };
-      }
-
-      return {
-        success: true,
-        status: 200,
-        message: 'Profile retrieved successfully',
-        data: user
-      };
-
-    } catch (error) {
-      console.error(' Error getting profile:', error);
-      return {
-        success: false,
-        status: 500,
-        message: 'Server error while retrieving profile'
-      };
-    }
-  },
-
-  /**
-   * Update user profile
-   */
-  updateProfile: async (req, res, profileImage) => {
-    try {
-      const { username, email, currentPassword, newPassword } = req.body;
-      const userId = req.user._id;
-
-      const user = await User.findById(userId);
-      if (!user) {
-        return {
-          success: false,
-          status: 404,
-          message: 'User not found'
-        };
-      }
-
-      const errors = {};
-      const updates = {};
-
-      // Validate username
-      if (username && username !== user.username) {
-        if (username.trim().length < 3) {
-          errors.username = 'Username must be at least 3 characters';
-        } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-          errors.username = 'Username can only contain letters, numbers, and underscores';
-        } else {
-          const existingUser = await User.findOne({ 
-            username: username.trim().toLowerCase(),
-            _id: { $ne: userId }
-          });
-          if (existingUser) {
-            errors.username = 'Username already taken';
-          } else {
-            updates.username = username.trim();
-          }
-        }
-      }
-
-      // Validate email
-      if (email && email !== user.email) {
-        if (!/^\S+@\S+\.\S+$/.test(email)) {
-          errors.email = 'Please provide a valid email';
-        } else {
-          const existingEmail = await User.findOne({ 
-            email: email.trim().toLowerCase(),
-            _id: { $ne: userId }
-          });
-          if (existingEmail) {
-            errors.email = 'Email already registered';
-          } else {
-            updates.email = email.trim().toLowerCase();
-          }
-        }
-      }
-
-      // Handle password change
-      if (newPassword) {
-        if (!currentPassword) {
-          errors.currentPassword = 'Current password is required to change password';
-        } else {
-          const isCurrentPasswordValid = await user.comparePassword(currentPassword);
-          if (!isCurrentPasswordValid) {
-            errors.currentPassword = 'Current password is incorrect';
-          } else if (newPassword.length < 8) {
-            errors.newPassword = 'New password must be at least 8 characters';
-          } else {
-            updates.password = newPassword;
-          }
-        }
-      }
-
-      // Handle profile image
-      if (profileImage) {
-        // Delete old profile image if it's not the default
-        if (user.profileImage && user.profileImage !== '/uploads/default-avatar.png') {
-          const oldImagePath = path.join(__dirname, '..', user.profileImage);
-          if (fs.existsSync(oldImagePath)) {
-            fs.unlinkSync(oldImagePath);
-            console.log('🗑️ Deleted old profile image:', user.profileImage);
-          }
-        }
-        updates.profileImage = `/uploads/${profileImage.filename}`;
-      }
-
-      // If there are validation errors
-      if (Object.keys(errors).length > 0) {
-        return {
-          success: false,
-          status: 400,
-          message: 'Please fix the errors below',
-          errors: errors,
-          deleteFile: !!profileImage
-        };
-      }
-
-      // Update user
-      if (Object.keys(updates).length > 0) {
-        Object.keys(updates).forEach(key => {
-          user[key] = updates[key];
-        });
-        await user.save();
-
-        // Update session
-        if (updates.username) req.session.username = updates.username;
-        if (updates.email) req.session.email = updates.email;
-        if (updates.profileImage) req.session.profileImage = updates.profileImage;
-      }
-
-      return {
-        success: true,
-        status: 200,
-        message: 'Profile updated successfully',
-        data: {
-          username: user.username,
-          email: user.email,
-          profileImage: user.profileImage
-        },
-        deleteFile: false
-      };
-
-    } catch (error) {
-      console.error(' Error updating profile:', error);
-      
-      if (error.code === 11000) {
-        const field = Object.keys(error.keyPattern)[0];
-        return {
-          success: false,
-          status: 400,
-          message: `${field} already exists`,
-          errors: { [field]: `${field} already exists` },
-          deleteFile: !!profileImage
-        };
-      }
-
-      return {
-        success: false,
-        status: 500,
-        message: 'Server error while updating profile',
-        deleteFile: !!profileImage
-      };
-    }
-  },
-
-  /**
-   * Logout user
-   */
-  logout: (req, res) => {
-    try {
-      req.session.destroy((err) => {
-        if (err) {
-          console.error(' Error destroying session:', err);
-          return {
-            success: false,
-            status: 500,
-            message: 'Error during logout'
-          };
-        }
-        
-        res.clearCookie('connect.sid');
-        return {
-          success: true,
-          status: 200,
-          message: 'Logout successful',
-          redirectTo: '/'
-        };
+        message: `This ${field} is already registered`,
+        errors: { [field]: `This ${field} is already taken` },
       });
-    } catch (error) {
-      console.error(' Logout error:', error);
-      return {
-        success: false,
-        status: 500,
-        message: 'Server error during logout'
-      };
     }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    console.log(" Password hashed successfully");
+
+    // Create new user
+    const newUser = new User({
+      username: username.trim(),
+      email: email.trim().toLowerCase(),
+      password: hashedPassword,
+      profileImage: req.file
+        ? `/uploads/${req.file.filename}`
+        : "/uploads/default-avatar.png",
+    });
+
+    const savedUser = await newUser.save();
+    console.log(" User registered successfully:", {
+      id: savedUser._id,
+      username: savedUser.username,
+      email: savedUser.email,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Account created successfully! Please login to continue.",
+      redirectTo: "/auth/login",
+    });
+  } catch (error) {
+    console.error("\n REGISTRATION ERROR:", error);
+
+    // Delete uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    // Handle mongoose validation errors
+    if (error.name === "ValidationError") {
+      const errors = {};
+      Object.keys(error.errors).forEach((key) => {
+        errors[key] = error.errors[key].message;
+      });
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors,
+      });
+    }
+
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        success: false,
+        message: `This ${field} is already registered`,
+        errors: { [field]: `This ${field} is already taken` },
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error during registration. Please try again.",
+    });
   }
 };
 
-module.exports = userController;
+
+// Login User
+
+exports.loginUser = async (req, res) => {
+  console.log('\n=== LOGIN ATTEMPT ===');
+  console.log('Body:', req.body);
+  console.log('Session before login:', req.session);
+  
+  try {
+    const { email, password, rememberMe } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      console.log(' Missing email or password');
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required',
+      });
+    }
+
+    // Find user by email
+    console.log(' Looking for user with email:', email.trim().toLowerCase());
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    
+    if (!user) {
+      console.log(' User not found:', email);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email or password',
+      });
+    }
+
+    console.log(' User found:', {
+      id: user._id,
+      email: user.email,
+      username: user.username
+    });
+    
+    // Compare passwords
+    console.log(' Comparing password...');
+    const isMatch = await user.comparePassword(password);
+    
+    if (!isMatch) {
+      console.log(' Password does not match');
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email or password',
+      });
+    }
+
+    console.log(' Password matched!');
+
+    // Set session data
+    req.session.userId = user._id;
+    req.session.isAuthenticated = true;
+    
+    // Set cookie expiration based on "Remember Me"
+    if (rememberMe) {
+      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+      console.log('🔒 Remember Me enabled - 30 days session');
+    } else {
+      req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 24 hours
+      console.log('🔒 Standard session - 24 hours');
+    }
+    
+    console.log('Session data set:', {
+      userId: req.session.userId,
+      isAuthenticated: req.session.isAuthenticated,
+      sessionID: req.sessionID
+    });
+
+    // Save the session explicitly
+    req.session.save((err) => {
+      if (err) {
+        console.error('❌ Session save error:', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Error saving session. Please try again.',
+        });
+      }
+
+      console.log('✅ Session saved successfully');
+      console.log('✅ Login successful for user:', user.email);
+
+      // Remove password from response
+      const userResponse = {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage,
+      };
+
+      return res.json({
+        success: true,
+        message: 'Login successful',
+        user: userResponse,
+        redirect: '/dashboard',
+      });
+    });
+  } catch (error) {
+    console.error('❌ Login error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during login. Please try again.',
+    });
+  }
+};
+
+// --------------------
+// Logout User
+// --------------------
+exports.logoutUser = (req, res) => {
+  console.log('\n=== LOGOUT ATTEMPT ===');
+  console.log('User ID:', req.session.userId);
+  
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('❌ Error destroying session:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Error logging out',
+      });
+    }
+    
+    console.log('✅ Session destroyed successfully');
+    res.clearCookie('connect.sid');
+    res.clearCookie('grocery.sid'); // Clear your custom session cookie name
+    res.redirect('/auth/login');
+  });
+};
+
+// --------------------
+// Get User Profile
+// --------------------
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.session.userId).select('-password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      user
+    });
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user profile'
+    });
+  }
+};
+
+// --------------------
+// Update User Profile
+// --------------------
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const { username, email } = req.body;
+    const user = await User.findById(req.session.userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update fields if provided
+    if (username && username.trim() !== '') user.username = username.trim();
+    if (email && email.trim() !== '') user.email = email.trim().toLowerCase();
+
+    // Handle profile image update if file was uploaded
+    if (req.file) {
+      // Delete old profile image if it's not the default
+      if (user.profileImage !== '/uploads/default-avatar.png') {
+        const oldImagePath = path.join(__dirname, '..', user.profileImage);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+      user.profileImage = `/uploads/${req.file.filename}`;
+    }
+
+    await user.save();
+    
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: userResponse
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    
+    // Delete uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        success: false,
+        message: `This ${field} is already taken`,
+        field
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile'
+    });
+  }
+};

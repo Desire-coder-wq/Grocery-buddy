@@ -10,7 +10,7 @@ router.use((req, res, next) => {
 });
 
 // --- Redirect legacy dashboard login page to /auth/login ---
-router.get("/login.html", (req, res) => {
+router.get("/login", (req, res) => {
   console.log("Redirecting /dashboard/login.html to /auth/login");
   return res.redirect("/auth/login");
 });
@@ -23,6 +23,9 @@ router.get("/test", (req, res) => {
 
 // --- Dashboard Home (requires authentication) ---
 router.get("/", requireAuth, async (req, res) => {
+  console.log("dashboard error");
+  console.log("log  request ", req);
+  console.log("log response", res);
   try {
     const user = await User.findById(req.session.userId).select("-password");
 
