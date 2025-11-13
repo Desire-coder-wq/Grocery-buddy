@@ -4,26 +4,22 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/UserModel");
 const { redirectIfAuthenticated } = require("../middleware/auth");
 
-
 const validateLoginData = (data) => {
   const { email, password } = data;
   const errors = {};
 
-  
   if (!email || email.trim() === "") {
     errors.email = "Email is required";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     errors.email = "Please provide a valid email address";
   }
 
-  
   if (!password || password.trim() === "") {
     errors.password = "Password is required";
   }
 
   return errors;
 };
-
 
 router.get("/login", redirectIfAuthenticated, (req, res) => {
   res.render("login", { title: "Login" });
@@ -32,6 +28,7 @@ router.get("/login", redirectIfAuthenticated, (req, res) => {
 router.post("/login", async (req, res) => {
   console.log("\n=== LOGIN ATTEMPT ===");
   console.log("Email:", req.body.email);
+  console.log("Password length:", req.body.password?.length);
   console.log("Timestamp:", new Date().toISOString());
 
   try {
@@ -60,11 +57,36 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    console.log(" User found:", user.email);
+    console.log("✅ User found:", user.email);
+    console.log("Stored hash:", user.password);
+    console.log("Attempting password:", password);
+
+    // DETAILED DEBUG LOGGING
+    console.log("\n=== PASSWORD COMPARISON DEBUG ===");
+    console.log("Password provided:", password);
+    console.log("Password length:", password.length);
+    console.log("Hash in DB:", user.password);
+    console.log("Hash prefix:", user.password.substring(0, 7));
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
+    console.log("Password valid?", isPasswordValid);
+    console.log("=== END DEBUG ===\n");
+
     if (!isPasswordValid) {
-      console.log(" Invalid password for user:", user.email);
+      console.log("❌ Invalid password for user:", user.email);
+
+      // TEMPORARY: Test with common passwords
+      const testPasswords = ["password", "Password123", "rose123", "Rose123"];
+      console.log("\n🔍 Testing common passwords...");
+      for (const testPwd of testPasswords) {
+        const testResult = await bcrypt.compare(testPwd, user.password);
+        console.log(`Testing '${testPwd}': ${testResult}`);
+        if (testResult) {
+          console.log(`✅ MATCH FOUND: The password is '${testPwd}'`);
+        }
+      }
+
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -72,7 +94,7 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    console.log(" Password validated successfully");
+    console.log("✅ Password validated successfully");
 
     // Create session
     req.session.userId = user._id;
@@ -83,23 +105,21 @@ router.post("/login", async (req, res) => {
 
     // Handle "Remember Me" functionality
     if (rememberMe) {
-      // Session will last 30 days
       req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
     } else {
-      // Session will last until browser closes
       req.session.cookie.expires = false;
     }
 
     req.session.save((err) => {
       if (err) {
-        console.error(" Session save error:", err);
+        console.error("❌ Session save error:", err);
         return res.status(500).json({
           success: false,
           message: "Error creating session. Please try again.",
         });
       }
 
-      console.log(" Session created successfully");
+      console.log("✅ Session created successfully");
       console.log("Session ID:", req.sessionID);
       console.log("User ID:", req.session.userId);
 
@@ -116,7 +136,7 @@ router.post("/login", async (req, res) => {
       });
     });
   } catch (error) {
-    console.error("\n LOGIN ERROR:", error);
+    console.error("\n❌ LOGIN ERROR:", error);
     return res.status(500).json({
       success: false,
       message: "Server error during login. Please try again.",
@@ -124,70 +144,125 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// TEMPORARY: Password reset route - REMOVE after use
-router.post("/reset-password-temp", async (req, res) => {
+// RESET GRACE'S PASSWORD to a known value
+router.post("/reset-grace-password", async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
-    
-    // Hash the new password
+    const newPassword = "Grace@123"; // Known password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-    
-    // Update user's password
-    const user = await User.findOneAndUpdate(
-      { email: email.toLowerCase() },
-      { password: hashedPassword },
-      { new: true }
-    );
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found"
-      });
-    }
-    
-    console.log("✅ Password reset successfully for:", user.email);
-    console.log("New password hash:", hashedPassword);
-    
-    return res.json({
-      success: true,
-      message: `Password reset successfully for ${user.email}`,
-      newPassword: newPassword
-    });
-  } catch (error) {
-    console.error("❌ Reset error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Error resetting password"
-    });
-  }
-});
 
-// ADD THIS TEMPORARILY - Remove after fixing
-router.post("/emergency-reset", async (req, res) => {
-  try {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash("Password123", salt);
-    
     const user = await User.findOneAndUpdate(
       { email: "grace@gmail.com" },
       { password: hashedPassword },
       { new: true }
     );
-    
-    console.log("✅ Password reset to 'Password123'");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    console.log("✅ Grace's password reset successfully");
+    console.log("Email:", user.email);
+    console.log("New password:", newPassword);
     console.log("New hash:", hashedPassword);
-    
-    return res.json({ 
-      success: true, 
-      message: "Password reset successfully" 
+
+    return res.json({
+      success: true,
+      message: `Password reset successfully for ${user.email}`,
+      newPassword: newPassword,
+      instructions:
+        "Now login with email: grace@gmail.com and password: Grace@123",
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error("❌ Reset error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error resetting password",
+    });
   }
 });
 
+// RESET ROSE'S PASSWORD to a known value
+router.post("/reset-rose-password", async (req, res) => {
+  try {
+    const newPassword = "Rose123456"; // Known password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    const user = await User.findOneAndUpdate(
+      { email: "rose@gmail.com" },
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    console.log("✅ Rose's password reset successfully");
+    console.log("Email:", user.email);
+    console.log("New password:", newPassword);
+    console.log("New hash:", hashedPassword);
+
+    return res.json({
+      success: true,
+      message: `Password reset successfully for ${user.email}`,
+      newPassword: newPassword,
+      instructions:
+        "Now login with email: rose@gmail.com and password: Rose123456",
+    });
+  } catch (error) {
+    console.error("❌ Reset error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error resetting password",
+    });
+  }
+});
+
+// TEMPORARY: Password reset route
+router.post("/reset-password-temp", async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    const user = await User.findOneAndUpdate(
+      { email: email.toLowerCase() },
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    console.log("✅ Password reset successfully for:", user.email);
+    console.log("New password:", newPassword);
+
+    return res.json({
+      success: true,
+      message: `Password reset successfully for ${user.email}`,
+      newPassword: newPassword,
+    });
+  } catch (error) {
+    console.error("❌ Reset error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error resetting password",
+    });
+  }
+});
 
 router.post("/logout", (req, res) => {
   console.log("\n=== LOGOUT ATTEMPT ===");
@@ -202,7 +277,7 @@ router.post("/logout", (req, res) => {
 
   req.session.destroy((err) => {
     if (err) {
-      console.error(" Logout error:", err);
+      console.error("❌ Logout error:", err);
       return res.status(500).json({
         success: false,
         message: "Error logging out. Please try again.",
@@ -210,7 +285,7 @@ router.post("/logout", (req, res) => {
     }
 
     res.clearCookie("connect.sid");
-    console.log("Logout successful");
+    console.log("✅ Logout successful");
 
     return res.status(200).json({
       success: true,
@@ -219,7 +294,6 @@ router.post("/logout", (req, res) => {
     });
   });
 });
-
 
 router.get("/check-auth", (req, res) => {
   if (req.session && req.session.isAuthenticated) {

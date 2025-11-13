@@ -8,9 +8,10 @@ const User = require("../models/UserModel");
 const { redirectIfAuthenticated } = require("../middleware/auth");
 
 // Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, "..", "uploads");
+const uploadsDir = path.join(__dirname, "..", "public", "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log("Created uploads directory:", uploadsDir);
 }
 
 /* ------------------ MULTER SETUP ------------------ */
@@ -23,18 +24,18 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
   const extname = path.extname(file.originalname).toLowerCase();
-  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
-  
+  const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
+
   const isMimeTypeValid = allowedTypes.includes(file.mimetype);
   const isExtensionValid = allowedExtensions.includes(extname);
-  
+
   if (isMimeTypeValid && isExtensionValid) {
     return cb(null, true);
   }
-  
-  cb(new Error('Only image files (JPEG, JPG, PNG, GIF) are allowed!'));
+
+  cb(new Error("Only image files (JPEG, JPG, PNG, GIF) are allowed!"));
 };
 
 const upload = multer({
@@ -108,7 +109,6 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
     const validationErrors = validateRegistrationData(req.body);
 
     if (Object.keys(validationErrors).length > 0) {
-      // Delete uploaded file if validation fails
       if (req.file && fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
@@ -129,7 +129,6 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
     });
 
     if (existingUser) {
-      // Delete uploaded file if user exists
       if (req.file && fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
@@ -147,22 +146,23 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
       });
     }
 
-    // Hash password
+    // Hash password BEFORE saving
+    console.log("🔐 Hashing password...");
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
-    console.log("🔐 Password hashed successfully");
+    console.log("Password hashed successfully");
 
     // Create new user
     const newUser = new User({
       username: username.trim(),
       email: email.trim().toLowerCase(),
-      password: hashedPassword,
+      password: hashedPassword, // Use the hashed password
       profileImage: req.file
         ? `/uploads/${req.file.filename}`
         : "/uploads/default-avatar.png",
     });
 
+    console.log("Saving user to database...");
     const savedUser = await newUser.save();
     console.log("✅ User registered successfully:", {
       id: savedUser._id,
@@ -178,12 +178,10 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
   } catch (error) {
     console.error("\n❌ REGISTRATION ERROR:", error);
 
-    // Delete uploaded file on error
     if (req.file && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
 
-    // Handle mongoose validation errors
     if (error.name === "ValidationError") {
       const errors = {};
       Object.keys(error.errors).forEach((key) => {
@@ -196,7 +194,6 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
       });
     }
 
-    // Handle duplicate key errors
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       return res.status(400).json({
@@ -222,123 +219,110 @@ router.get("/login", redirectIfAuthenticated, (req, res) => {
 
 // POST: Login user
 router.post("/login", async (req, res) => {
-  console.log('\n=== LOGIN ATTEMPT ===');
-  console.log('Body:', req.body);
-  
+  console.log("\n=== LOGIN ATTEMPT ===");
+  console.log("Body:", req.body);
+
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      console.log('Missing email or password');
+      console.log("Missing email or password");
       return res.status(400).json({
         success: false,
-        message: 'Email and password are required',
-        field: !email ? 'email' : 'password'
+        message: "Email and password are required",
+        field: !email ? "email" : "password",
       });
     }
 
-    // Find user by email
-    console.log('Looking for user with email:', email);
+    console.log("Looking for user with email:", email);
     const user = await User.findOne({ email: email.trim().toLowerCase() });
-    
+
     if (!user) {
-      console.log('❌ User not found:', email);
+      console.log("❌ User not found:", email);
       return res.status(400).json({
         success: false,
-        message: 'Invalid email or password',
-        field: 'email',
+        message: "Invalid email or password",
+        field: "email",
       });
     }
 
-    console.log('✅ User found:', user.email);
-    console.log('Stored password hash:', user.password);
-    
+    console.log("✅ User found:", user.email);
+
     // Compare passwords
-    console.log('Comparing password...');
-    const isMatch = await user.comparePassword(password);
-    
+    console.log("Comparing password...");
+    const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
-      console.log('❌ Password does not match');
-      // For debugging: hash the provided password to see what it would look like
-      const testHash = await bcrypt.hash(password, 10);
-      console.log('Test hash of provided password:', testHash);
-      
+      console.log("❌ Password does not match");
       return res.status(400).json({
         success: false,
-        message: 'Invalid email or password',
-        field: 'password',
+        message: "Invalid email or password",
+        field: "password",
       });
     }
+
+    console.log("✅ Password matched");
 
     // Set session data
-    console.log('Setting session data...');
     req.session.userId = user._id;
     req.session.isAuthenticated = true;
-    req.session.cookie.expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    
-    console.log('Session data set:', {
-      userId: req.session.userId,
-      isAuthenticated: req.session.isAuthenticated,
-      cookie: req.session.cookie
-    });
 
     // Save the session
     req.session.save((err) => {
       if (err) {
-        console.error('❌ Session save error:', err);
+        console.error("❌ Session save error:", err);
         return res.status(500).json({
           success: false,
-          message: 'Error saving session',
-          error: process.env.NODE_ENV === 'development' ? err.message : undefined
+          message: "Error saving session",
         });
       }
 
-      console.log('✅ Login successful for user:', user.email);
-      console.log('Session ID:', req.sessionID);
-      console.log('Session data after save:', req.session);
+      console.log("✅ Login successful for user:", user.email);
 
-      // Set the session cookie manually for extra safety
-      res.cookie('connect.sid', req.sessionID, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'lax'
-      });
-
-      // Remove password from response
       const userResponse = user.toObject();
       delete userResponse.password;
 
       return res.json({
         success: true,
-        message: 'Login successful',
+        message: "Login successful",
         user: userResponse,
-        redirect: '/dashboard',
-        sessionId: req.sessionID // For debugging
       });
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("❌ Login error:", error);
     return res.status(500).json({
       success: false,
-      message: 'Server error during login',
+      message: "Server error during login",
     });
   }
 });
 
+// GET: Check authentication status
+router.get("/check-auth", (req, res) => {
+  if (req.session && req.session.isAuthenticated) {
+    return res.json({
+      authenticated: true,
+      userId: req.session.userId,
+    });
+  }
+  return res.json({
+    authenticated: false,
+  });
+});
+
 // GET: Logout
-router.get('/logout', (req, res) => {
+router.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error('Error destroying session:', err);
+      console.error("Error destroying session:", err);
       return res.status(500).json({
         success: false,
-        message: 'Error logging out',
+        message: "Error logging out",
       });
     }
-    
-    res.clearCookie('connect.sid');
-    res.redirect('/auth/login');
+
+    res.clearCookie("connect.sid");
+    res.redirect("/auth/login");
   });
 });
 

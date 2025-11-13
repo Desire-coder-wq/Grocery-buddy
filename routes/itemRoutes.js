@@ -15,34 +15,53 @@ function isValidObjectId(id) {
 // Helper: Normalize category to title case
 // --------------------
 function normalizeCategory(cat) {
-  if (!cat) return 'Other';
-  return cat.toLowerCase()
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  if (!cat) return "Other";
+  return cat
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 // --------------------
 // Get all items
 // --------------------
 router.get("/", requireAuth, async (req, res) => {
+  console.log("GET /api/items - Session:", {
+    userId: req.session.userId,
+    isAuthenticated: req.session.isAuthenticated,
+  });
+
   try {
-    let items = await Item.find({ user: req.session.userId })
-      .select('name quantity category completed createdAt')
+    const items = await Item.find({ user: req.session.userId })
+      .select("name quantity category price completed createdAt")
       .sort({ createdAt: -1 })
       .lean();
-    
+
+    console.log(`Found ${items.length} items for user ${req.session.userId}`);
+
     // Normalize categories for all items
-    items = items.map(item => ({
+    const normalizedItems = items.map((item) => ({
       ...item,
-      category: normalizeCategory(item.category)
+      category: normalizeCategory(item.category),
     }));
-    
-    console.log('Sending items to client:', items);
-    res.json({ success: true, items, count: items.length });
+
+    res.json({
+      success: true,
+      items: normalizedItems,
+      count: normalizedItems.length,
+    });
   } catch (error) {
-    console.error("Error fetching items:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch items" });
+    console.error("Error fetching items:", {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session.userId,
+    });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch items",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
   }
 });
 
@@ -74,33 +93,129 @@ router.get("/:id", requireAuth, async (req, res) => {
 // Create new item
 // --------------------
 router.post("/", requireAuth, async (req, res) => {
-  try {
-    const { name, quantity, category } = req.body;
+  console.log("POST /api/items - Request:", {
+    body: req.body,
+    session: {
+      userId: req.session.userId,
+      isAuthenticated: req.session.isAuthenticated,
+    },
+    headers: req.headers,
+  });
 
-    if (!name || name.trim() === "")
-      return res
-        .status(400)
-        .json({ success: false, message: "Item name is required" });
+  try {
+    const { name, quantity, category, price } = req.body;
+
+    // Validate required fields
+    if (!name || name.trim() === "") {
+      console.log("Validation failed: Item name is required");
+      return res.status(400).json({
+        success: false,
+        message: "Item name is required",
+        field: "name",
+      });
+    }
+
+    // Normalize and validate category
+    const normalizedCategory = normalizeCategory(category);
+    const validCategories = [
+      "Produce",
+      "Dairy",
+      "Meat",
+      "Bakery",
+      "Frozen",
+      "Beverages",
+      "Snacks",
+      "Other",
+    ];
+    const finalCategory = validCategories.includes(normalizedCategory)
+      ? normalizedCategory
+      : "Other";
+
+    // Parse and validate price
+    const parsedPrice =
+      price !== undefined && price !== null && price !== ""
+        ? parseFloat(price)
+        : 0;
+    const finalPrice =
+      !isNaN(parsedPrice) && parsedPrice >= 0 ? parsedPrice : 0;
 
     const newItem = new Item({
       name: name.trim(),
-      quantity: quantity ? quantity.trim() : "1",
-      category: normalizeCategory(category),
+      quantity: quantity ? String(quantity).trim() : "1",
+      category: finalCategory,
+      price: finalPrice,
       user: req.session.userId,
       completed: false,
     });
-    
-    console.log('Creating new item with category:', newItem.category);
 
-    await newItem.save();
+    console.log("Creating new item:", {
+      name: newItem.name,
+      quantity: newItem.quantity,
+      category: newItem.category,
+      price: newItem.price,
+      user: newItem.user,
+    });
+
+    const savedItem = await newItem.save().catch((saveError) => {
+      console.error("Error saving item to database:", {
+        error: saveError.message,
+        stack: saveError.stack,
+        name: saveError.name,
+        code: saveError.code,
+      });
+      throw saveError;
+    });
+
+    console.log("Item created successfully:", savedItem._id);
+
+    // Return the saved item with normalized category
+    const responseItem = {
+      ...savedItem.toObject(),
+      category: finalCategory,
+    };
+
     res.status(201).json({
       success: true,
       message: "Item created successfully",
-      item: newItem,
+      item: responseItem,
     });
   } catch (error) {
-    console.error("Error creating item:", error);
-    res.status(500).json({ success: false, message: "Failed to create item" });
+    console.error("Error creating item:", {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      errors: error.errors,
+      stack: error.stack,
+    });
+
+    // Handle validation errors
+    if (error.name === "ValidationError") {
+      const errors = {};
+      Object.keys(error.errors).forEach((key) => {
+        errors[key] = error.errors[key].message;
+      });
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors,
+      });
+    }
+
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "An item with this name already exists",
+        field: "name",
+      });
+    }
+
+    // Handle other errors
+    res.status(500).json({
+      success: false,
+      message: "Failed to create item",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
   }
 });
 
@@ -167,7 +282,7 @@ async function updateItem(req, res) {
     return res.status(400).json({ success: false, message: "Invalid item ID" });
 
   try {
-    const { name, quantity, completed, category } = req.body;
+    const { name, quantity, completed, category, price } = req.body;
     const item = await Item.findOne({
       _id: req.params.id,
       user: req.session.userId,
@@ -179,7 +294,31 @@ async function updateItem(req, res) {
 
     if (name !== undefined && name.trim() !== "") item.name = name.trim();
     if (quantity !== undefined) item.quantity = quantity.trim();
-    if (category !== undefined) item.category = category;
+
+    // Normalize and validate category before saving
+    if (category !== undefined) {
+      const normalizedCategory = normalizeCategory(category);
+      const validCategories = [
+        "Produce",
+        "Dairy",
+        "Meat",
+        "Bakery",
+        "Frozen",
+        "Beverages",
+        "Snacks",
+        "Other",
+      ];
+      item.category = validCategories.includes(normalizedCategory)
+        ? normalizedCategory
+        : "Other";
+    }
+
+    // Parse and validate price
+    if (price !== undefined) {
+      const parsedPrice = parseFloat(price);
+      item.price = !isNaN(parsedPrice) && parsedPrice >= 0 ? parsedPrice : 0;
+    }
+
     if (completed !== undefined) item.completed = completed;
 
     await item.save();

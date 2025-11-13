@@ -17,10 +17,46 @@ html
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         min-height: 100vh;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
         padding: 40px;
+      }
+
+      .main-wrapper {
+        display: flex;
+        width: 100%;
+        max-width: 1200px;
+        gap: 60px;
+        align-items: center;
+      }
+
+      .form-section {
+        flex: 1;
+        max-width: 450px;
+        padding: 20px 0;
+      }
+
+      .image-section {
+        flex: 1;
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        position: relative;
+        min-height: 100vh;
+        margin: -40px -40px -40px 0;
+      }
+
+      .image-section img {
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+        object-fit: cover;
+        border-radius: 20px 0 0 20px;
+        box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .container {
+        width: 100%;
       }
 
       a.back-link {
@@ -29,6 +65,7 @@ html
         font-size: 0.85em;
         display: inline-block;
         margin-bottom: 15px;
+        font-weight: 600;
       }
 
       a.back-link:hover {
@@ -38,22 +75,21 @@ html
       h2 {
         color: #333;
         margin-bottom: 8px;
-        font-size: 1.8em;
+        font-size: 2em;
       }
 
       .subtitle {
         color: #666;
-        margin-bottom: 20px;
-        font-size: 0.9em;
+        margin-bottom: 25px;
+        font-size: 0.95em;
       }
 
       form {
         width: 100%;
-        max-width: 400px;
       }
 
       .form-group {
-        margin-bottom: 15px;
+        margin-bottom: 18px;
       }
 
       label {
@@ -70,16 +106,18 @@ html
 
       input {
         width: 100%;
-        padding: 10px;
+        padding: 12px 14px;
         border: 2px solid #e0e0e0;
         border-radius: 8px;
         font-size: 0.95em;
-        transition: border-color 0.3s;
+        transition: all 0.3s;
+        background: white;
       }
 
       input:focus {
         outline: none;
         border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
       }
 
       input.error {
@@ -233,7 +271,7 @@ html
 
       .btn {
         width: 100%;
-        padding: 12px;
+        padding: 14px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
@@ -241,13 +279,13 @@ html
         font-size: 1em;
         font-weight: 600;
         cursor: pointer;
-        transition: transform 0.3s;
-        margin-top: 8px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        margin-top: 10px;
       }
 
       .btn:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
       }
 
       .btn:disabled {
@@ -258,7 +296,7 @@ html
 
       .login-link {
         text-align: center;
-        margin-top: 15px;
+        margin-top: 20px;
         color: #666;
         font-size: 0.9em;
       }
@@ -274,7 +312,7 @@ html
       }
 
       .alert {
-        padding: 10px;
+        padding: 12px;
         border-radius: 8px;
         margin-bottom: 15px;
         display: none;
@@ -315,59 +353,357 @@ html
         }
       }
 
+      @media (max-width: 968px) {
+        .main-wrapper {
+          flex-direction: column;
+          gap: 30px;
+        }
+
+        .image-section {
+          order: -1;
+          height: 300px;
+          margin: -40px -40px 0 -40px;
+        }
+
+        .image-section img {
+          border-radius: 20px 20px 0 0;
+          max-width: 100%;
+        }
+      }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 20px;
+        }
+
+        h2 {
+          font-size: 1.6em;
+        }
+
+        .image-section img {
+          max-width: 100%;
+        }
+      }
+
   body
-    a.back-link(href="/") ← Back to Home
-    h2 Create Account
-    p.subtitle Join Grocery Buddy today!
-    .alert#alertBox
-    form#registerForm(action="/auth/register" method="POST" enctype="multipart/form-data" novalidate)
-      .form-group
-        label(for="username")
-          | Username 
-          span.required
-        input#username(type="text", name="username", required, autocomplete="username")
-        .error-message#usernameError
-        .success-message#usernameSuccess
+    .main-wrapper
+      .form-section
+        .container
+          a.back-link(href="/") Back to Home
+          h2 Create Account
+          p.subtitle Join Grocery Buddy today!
+          .alert#alertBox
+          form#registerForm(action="/auth/register" method="POST" enctype="multipart/form-data")(novalidate)
+            .form-group
+              label(for="username")
+                | Username 
+                span.required 
+              input#username(type="text", name="username", required, autocomplete="username", placeholder="Choose a username")
+              .error-message#usernameError
+              .success-message#usernameSuccess
 
-      .form-group
-        label(for="email")
-          | Email 
-          span.required
-        input#email(type="email", name="email", required, autocomplete="email")
-        .error-message#emailError
-        .success-message#emailSuccess
+            .form-group
+              label(for="email")
+                | Email 
+                span.required 
+              input#email(type="email", name="email", required, autocomplete="email", placeholder="your@email.com")
+              .error-message#emailError
+              .success-message#emailSuccess
 
-      .form-group
-        label(for="password")
-          | Password 
-          span.required
-        input#password(type="password", name="password", required, autocomplete="new-password")
-        .error-message#passwordError
-        .password-strength
-          .strength-bar
-            .strength-bar-fill#strengthBar
-          span#strengthText
+            .form-group
+              label(for="password")
+                | Password 
+                span.required 
+              input#password(type="password", name="password", required, autocomplete="new-password", placeholder="Create a strong password")
+              .error-message#passwordError
+              .password-strength
+                .strength-bar
+                  .strength-bar-fill#strengthBar
+                .strength-text#strengthText
 
-      .form-group
-        label(for="confirmPassword")
-          | Confirm Password 
-          span.required
-        input#confirmPassword(type="password", name="confirmPassword", required, autocomplete="new-password")
-        .error-message#confirmError
-        .success-message#confirmSuccess
+            .form-group
+              label(for="confirmPassword")
+                | Confirm Password 
+                span.required 
+              input#confirmPassword(type="password", name="confirmPassword", required, autocomplete="new-password", placeholder="Confirm your password")
+              .error-message#confirmError
+              .success-message#confirmSuccess
 
-      .form-group
-        label(for="profileImage") Profile Picture (Optional)
-        .profile-upload#profileUploadField
-          .profile-preview#profilePreview
-            span.profile-preview-icon-small 👤
-          .upload-area
-            input#profileImage(type="file", name="profileImage", accept="image/*")
+            .form-group
+              label(for="profileImage") Profile Picture (Optional)
+              .profile-upload-field#profileUploadField
+                .upload-content
+                  .profile-preview-small#profilePreview
+                    span.profile-preview-icon-small 👤
+                  span.upload-text#uploadText Choose a profile picture
+                span.upload-icon 📁
+                input#profileImage(type="file", name="profileImage", accept="image/*")
 
-      button.btn#submitBtn(type="submit") Create Account
-      .login-link
-        | Already have an account? 
-        a(href="/auth/login") Login here
+            button.btn#submitBtn(type="submit") Create Account
+            .login-link
+              | Already have an account? 
+              a(href="/auth/login") Login here
+
+      .image-section
+        img(src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80", alt="Fresh groceries")
 
     script.
-      // your JavaScript code here (unchanged)
+      const form = document.getElementById('registerForm');
+      const usernameInput = document.getElementById('username');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const confirmPasswordInput = document.getElementById('confirmPassword');
+      const profileImageInput = document.getElementById('profileImage');
+      const submitBtn = document.getElementById('submitBtn');
+      const alertBox = document.getElementById('alertBox');
+
+      const usernameError = document.getElementById('usernameError');
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+      const confirmError = document.getElementById('confirmError');
+
+      const usernameSuccess = document.getElementById('usernameSuccess');
+      const emailSuccess = document.getElementById('emailSuccess');
+      const confirmSuccess = document.getElementById('confirmSuccess');
+
+      const strengthBar = document.getElementById('strengthBar');
+      const strengthText = document.getElementById('strengthText');
+
+      const profileUploadField = document.getElementById('profileUploadField');
+      const profilePreview = document.getElementById('profilePreview');
+      const uploadText = document.getElementById('uploadText');
+
+      function showError(input, errorElement, message) {
+        input.classList.add('error');
+        input.classList.remove('success');
+        errorElement.textContent = message;
+        errorElement.classList.add('show');
+      }
+
+      function showSuccess(input, errorElement, successElement, message = '') {
+        input.classList.remove('error');
+        input.classList.add('success');
+        errorElement.classList.remove('show');
+        if (successElement && message) {
+          successElement.textContent = message;
+          successElement.classList.add('show');
+        }
+      }
+
+      function clearValidation(input, errorElement, successElement) {
+        input.classList.remove('error', 'success');
+        errorElement.classList.remove('show');
+        if (successElement) {
+          successElement.classList.remove('show');
+        }
+      }
+
+      function validateUsername() {
+        const username = usernameInput.value.trim();
+        
+        if (!username) {
+          showError(usernameInput, usernameError, 'Username is required');
+          return false;
+        }
+        
+        if (username.length < 3) {
+          showError(usernameInput, usernameError, 'Username must be at least 3 characters');
+          return false;
+        }
+        
+        if (username.length > 20) {
+          showError(usernameInput, usernameError, 'Username must be less than 20 characters');
+          return false;
+        }
+        
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+          showError(usernameInput, usernameError, 'Username can only contain letters, numbers, and underscores');
+          return false;
+        }
+        
+        showSuccess(usernameInput, usernameError, usernameSuccess, '✓ Valid username');
+        return true;
+      }
+
+      function validateEmail() {
+        const email = emailInput.value.trim();
+        
+        if (!email) {
+          showError(emailInput, emailError, 'Email is required');
+          return false;
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showError(emailInput, emailError, 'Please enter a valid email address');
+          return false;
+        }
+        
+        showSuccess(emailInput, emailError, emailSuccess, '✓ Valid email');
+        return true;
+      }
+
+      function validatePassword() {
+        const password = passwordInput.value;
+        
+        if (!password) {
+          showError(passwordInput, passwordError, 'Password is required');
+          strengthBar.className = 'strength-bar-fill';
+          strengthText.textContent = '';
+          return false;
+        }
+        
+        if (password.length < 8) {
+          showError(passwordInput, passwordError, 'Password must be at least 8 characters');
+          strengthBar.className = 'strength-bar-fill';
+          strengthText.textContent = '';
+          return false;
+        }
+        
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.length >= 12) strength++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^a-zA-Z0-9]/.test(password)) strength++;
+        
+        passwordInput.classList.remove('error');
+        passwordError.classList.remove('show');
+        
+        if (strength <= 2) {
+          strengthBar.className = 'strength-bar-fill weak';
+          strengthText.textContent = 'Weak password';
+        } else if (strength <= 3) {
+          strengthBar.className = 'strength-bar-fill medium';
+          strengthText.textContent = 'Medium password';
+        } else {
+          strengthBar.className = 'strength-bar-fill strong';
+          strengthText.textContent = 'Strong password';
+        }
+        
+        if (confirmPasswordInput.value) {
+          validateConfirmPassword();
+        }
+        
+        return true;
+      }
+
+      function validateConfirmPassword() {
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        
+        if (!confirmPassword) {
+          showError(confirmPasswordInput, confirmError, 'Please confirm your password');
+          return false;
+        }
+        
+        if (password !== confirmPassword) {
+          showError(confirmPasswordInput, confirmError, 'Passwords do not match');
+          return false;
+        }
+        
+        showSuccess(confirmPasswordInput, confirmError, confirmSuccess, '✓ Passwords match');
+        return true;
+      }
+
+      usernameInput.addEventListener('blur', validateUsername);
+      usernameInput.addEventListener('input', () => {
+        if (usernameInput.value.trim()) {
+          validateUsername();
+        } else {
+          clearValidation(usernameInput, usernameError, usernameSuccess);
+        }
+      });
+
+      emailInput.addEventListener('blur', validateEmail);
+      emailInput.addEventListener('input', () => {
+        if (emailInput.value.trim()) {
+          validateEmail();
+        } else {
+          clearValidation(emailInput, emailError, emailSuccess);
+        }
+      });
+
+      passwordInput.addEventListener('input', validatePassword);
+      passwordInput.addEventListener('blur', validatePassword);
+
+      confirmPasswordInput.addEventListener('input', () => {
+        if (confirmPasswordInput.value) {
+          validateConfirmPassword();
+        }
+      });
+      confirmPasswordInput.addEventListener('blur', validateConfirmPassword);
+
+      profileImageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            profilePreview.innerHTML = `<img src="${e.target.result}" alt="Profile preview">`;
+            uploadText.textContent = file.name;
+            uploadText.classList.add('has-file');
+            profileUploadField.classList.add('has-file');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      function showAlert(message, type) {
+        alertBox.textContent = message;
+        alertBox.className = `alert ${type} show`;
+        setTimeout(() => {
+          alertBox.classList.remove('show');
+        }, 5000);
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const isUsernameValid = validateUsername();
+        const isEmailValid = validateEmail();
+        const isPasswordValid = validatePassword();
+        const isConfirmPasswordValid = validateConfirmPassword();
+        
+        if (!isUsernameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+          showAlert('Please fix the errors before submitting', 'error');
+          return;
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Creating Account<span class="loading-spinner"></span>';
+        
+        try {
+          const formData = new FormData();
+          formData.append('username', usernameInput.value.trim());
+          formData.append('email', emailInput.value.trim());
+          formData.append('password', passwordInput.value);
+          formData.append('confirmPassword', confirmPasswordInput.value);
+          
+          if (profileImageInput.files[0]) {
+            formData.append('profileImage', profileImageInput.files[0]);
+          }
+          
+          const response = await fetch('/auth/register', {
+            method: 'POST',
+            body: formData
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            showAlert('Account created successfully! Redirecting...', 'success');
+            setTimeout(() => {
+              window.location.href = data.redirect || '/auth/login';
+            }, 1500);
+          } else {
+            showAlert(data.message || 'Registration failed. Please try again.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Account';
+          }
+        } catch (error) {
+          console.error('Registration error:', error);
+          showAlert('An error occurred. Please try again.', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Create Account';
+        }
+      });
