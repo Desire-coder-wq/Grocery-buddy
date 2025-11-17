@@ -32,29 +32,43 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "/uploads/default-avatar.png",
     },
+    resetPasswordToken: {
+      type: String,
+      default: null
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null
+    },
     createdAt: {
       type: Date,
       default: Date.now,
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Adds createdAt and updatedAt automatically
   }
 );
 
-// ✅ KEEP THIS VERSION - Remove the duplicate one below
-userSchema.methods.comparePassword = async function (candidatePassword) {
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
   try {
     console.log('\n=== PASSWORD COMPARISON ===');
     console.log('Candidate password:', `"${candidatePassword}"`);
-    console.log('Stored hash exists:', !!this.password);
     
     if (!candidatePassword || !this.password) {
       console.log('❌ Missing password or hash for comparison');
       return false;
     }
     
+    // Check if the stored password is already hashed
+    const isHash = /^\$2[aby]\$\d{2}\$[.\/A-Za-z0-9]{53}$/.test(this.password);
+    console.log('Stored password is hashed:', isHash);
+    
+    // Always use bcrypt.compare for security
+    console.log('Comparing using bcrypt...');
     const isMatch = await bcrypt.compare(candidatePassword, this.password);
+    
     console.log('✅ Password comparison result:', isMatch);
     return isMatch;
   } catch (error) {
@@ -63,60 +77,28 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   }
 };
 
-// ✅ KEEP THIS VERSION - Remove the duplicate one below
+// Hash password before saving
 userSchema.pre('save', async function(next) {
   // Only hash the password if it has been modified (or is new)
-  if (!this.isModified('password')) {
-    console.log('Password not modified, skipping hash');
-    return next();
-  }
+  if (!this.isModified('password')) return next();
   
   try {
     console.log('\n=== PASSWORD HASHING ===');
-    console.log('Original password before hash:', this.password);
+    console.log('Original password:', this.password);
     
-    // Check if password is already hashed (shouldn't be, but just in case)
-    const isAlreadyHashed = /^\$2[aby]\$\d{2}\$[.\/A-Za-z0-9]{53}$/.test(this.password);
-    if (isAlreadyHashed) {
-      console.log('Password is already hashed, skipping re-hash');
-      return next();
-    }
-    
+    // Generate salt and hash the password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(this.password, salt);
+    console.log('Salt generated');
     
-    this.password = hashedPassword;
+    this.password = await bcrypt.hash(this.password, salt);
     console.log('Password hashed successfully');
     
     next();
   } catch (error) {
-    console.error(' Error hashing password:', error);
+    console.error('❌ Error hashing password:', error);
     next(error);
   }
 });
-
-// 🚨 REMOVE THESE DUPLICATE METHODS (they appear later in your file):
-/*
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  try {
-    return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
-    throw new Error('Error comparing passwords');
-  }
-};
-
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-*/
 
 // Create indexes for faster queries
 userSchema.index({ email: 1 });

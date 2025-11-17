@@ -145,17 +145,17 @@ const loginRoutes = require("./routes/loginRoutes"); // NEW: Import login routes
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const { userInViews } = require("./middleware/auth");
+const historyRoutes = require("./routes/historyRoutes");
 
 
 // Apply middleware
 app.use(userInViews);
-
-// Mount routes
-app.use("/auth", loginRoutes);        // NEW: Login routes at /auth/login, /auth/logout, /auth/check-auth
-app.use("/auth", authRoutes);         // Register routes at /auth/register
-app.use("/api/items", itemRoutes);    // Item API routes
-app.use("/dashboard", dashboardRoutes); // Dashboard routes
-app.use("/", indexRoutes);            // Index routes
+app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/items", itemRoutes);
+app.use("/dashboard", dashboardRoutes);
+app.use("/history", historyRoutes);
+app.use("/", indexRoutes);
 
 // Catch-all route handler for undefined routes
 app.use((req, res, next) => {

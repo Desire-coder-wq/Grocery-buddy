@@ -1,0 +1,664 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width,initial-scale=1")
+    title Shopping History - Grocery Buddy
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
+
+    style.
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Floating Background */
+      .floating-groceries {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .grocery-item {
+        position: absolute;
+        font-size: 4em;
+        opacity: 0.5;
+        animation: float 20s infinite ease-in-out;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+      }
+
+      .grocery-item:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; animation-duration: 25s; font-size: 3.5em; }
+      .grocery-item:nth-child(2) { left: 80%; top: 30%; animation-delay: 2s; animation-duration: 22s; font-size: 4.5em; }
+      .grocery-item:nth-child(3) { left: 20%; top: 60%; animation-delay: 4s; animation-duration: 28s; font-size: 4em; }
+      .grocery-item:nth-child(4) { left: 70%; top: 70%; animation-delay: 6s; animation-duration: 24s; font-size: 3.8em; }
+      .grocery-item:nth-child(5) { left: 40%; top: 15%; animation-delay: 8s; animation-duration: 26s; font-size: 4.2em; }
+      .grocery-item:nth-child(6) { left: 90%; top: 50%; animation-delay: 10s; animation-duration: 23s; font-size: 3.6em; }
+      .grocery-item:nth-child(7) { left: 15%; top: 80%; animation-delay: 12s; animation-duration: 27s; font-size: 4.4em; }
+      .grocery-item:nth-child(8) { left: 60%; top: 10%; animation-delay: 14s; animation-duration: 21s; font-size: 3.9em; }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        25% { transform: translateY(-30px) rotate(5deg); }
+        50% { transform: translateY(-60px) rotate(-5deg); }
+        75% { transform: translateY(-30px) rotate(3deg); }
+      }
+
+      /* Navbar */
+      .navbar {
+        background: white;
+        color: black;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 2;
+      }
+
+      .navbar h1 {
+        font-size: 1.5em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .nav-right {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+      }
+
+      .profile-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid #667eea;
+        object-fit: cover;
+      }
+
+      .nav-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .nav-btn:hover { transform: translateY(-2px); }
+
+      /* Layout Content */
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Filter Area */
+      .filter-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      }
+
+      .filter-group input[type="date"] {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+      }
+
+      .filter-btn { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+      .btn-apply { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+      .btn-reset { background: #6c757d; color: white; }
+      .btn-reset:hover { background: #565e64; }
+
+      /* Stats Cards */
+      .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5em;
+        color: white;
+      }
+
+      .stat-icon.cleared { background: linear-gradient(135deg, #11998e, #38ef7d); }
+      .stat-icon.total-spent { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+      .stat-icon.items { background: linear-gradient(135deg, #667eea, #764ba2); }
+
+      .history-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      }
+
+      .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .btn-clear-history {
+        background: #e74c3c;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      .history-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
+
+      .item-price { font-weight: bold; color: #2ecc71; }
+
+      /* New History Display Styles */
+      .history-day {
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      }
+
+      .day-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .day-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .day-icon {
+        font-size: 24px;
+        background: rgba(255,255,255,0.2);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .day-text h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .item-count {
+        font-size: 12px;
+        opacity: 0.9;
+      }
+
+      .day-total {
+        font-size: 18px;
+        font-weight: bold;
+        background: rgba(255,255,255,0.2);
+        padding: 8px 15px;
+        border-radius: 20px;
+      }
+
+      .day-items {
+        padding: 15px;
+      }
+
+      .history-item-card {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+      }
+
+      .history-item-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      }
+
+      .item-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .item-emoji {
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        background: #f0f2f5;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .item-info {
+        flex: 1;
+      }
+
+      .item-name {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 5px;
+        color: #2c3e50;
+      }
+
+      .item-details {
+        display: flex;
+        gap: 15px;
+        font-size: 12px;
+        color: #7f8c8d;
+      }
+
+      .quantity {
+        background: #e8f5e9;
+        color: #27ae60;
+        padding: 2px 8px;
+        border-radius: 12px;
+      }
+
+      .category {
+        background: #fff3cd;
+        color: #856404;
+        padding: 2px 8px;
+        border-radius: 12px;
+      }
+
+      .time {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 2px 8px;
+        border-radius: 12px;
+      }
+
+      @media(max-width: 768px) {
+        .history-header { flex-direction: column; gap: 10px; }
+      }
+
+  body
+    //- Floating grocery emojis
+    .floating-groceries
+      each item in ['🍎','🥖','🥛','🥕','🍌','🧀','🥩','🥤']
+        .grocery-item #{item}
+
+    //- Navbar
+    nav.navbar
+      h1
+        | 🛒 Grocery Buddy
+      
+      .nav-right
+        .user-info
+          if user && user.profileImage
+            img.profile-image(src=user.profileImage)
+          else
+            img.profile-image(src="/uploads/default-avatar.png")
+          span.user-email= user ? user.email : 'Guest'
+
+        a.nav-btn(href="/dashboard") 
+          i.fas.fa-home
+          | Dashboard
+
+        a.nav-btn(href="/dashboard/profile")
+          i.fas.fa-user
+          | Profile
+        
+        a.nav-btn(href="/auth/logout")
+          i.fas.fa-sign-out-alt
+          | Logout
+
+    .container
+      .filter-section
+        .filter-group
+          label(for="startDate") From:
+          input(type="date", id="startDate")
+
+        .filter-group
+          label(for="endDate") To:
+          input(type="date", id="endDate")
+
+        button.filter-btn.btn-apply(type="button", onclick="applyDateFilter()") 
+          i.fas.fa-filter
+          | Apply Filter
+        
+        button.filter-btn.btn-reset(type="button", onclick="resetDateFilter()") 
+          i.fas.fa-times
+          | Reset
+
+      .stats-overview
+        .stat-card
+          .stat-icon.cleared
+            i.fas.fa-check-double
+          .stat-info
+            h3#totalCleared 0
+            p Lists Cleared
+
+        .stat-card
+          .stat-icon.total-spent
+            i.fas.fa-money-bill-wave
+          .stat-info
+            h3#totalSpent UGX 0
+            p Total Spent
+
+        .stat-card
+          .stat-icon.items
+            i.fas.fa-shopping-basket
+          .stat-info
+            h3#totalHistoryItems 0
+            p Items Purchased
+
+      .history-section
+        .history-header
+          h3
+            i.fas.fa-list
+            | Cleared Items
+
+          button.btn-clear-history(onclick="clearAllHistory()")
+            i.fas.fa-trash
+            | Clear All
+
+        .history-list#historyList
+          .empty-state
+            i.fas.fa-box-open
+            h4 No history yet
+            p Cleared items will show here
+
+
+        script.
+          let historyItems = [];
+
+          document.addEventListener('DOMContentLoaded', () => {
+            loadHistory();
+          });
+
+          async function loadHistory() {
+            try {
+              const res = await fetch('/history/api');
+              if (!res.ok) throw new Error('Failed to load history');
+              const data = await res.json();
+              historyItems = Array.isArray(data.history) ? data.history : [];
+              renderHistory();
+              updateStats();
+            } catch (e) {
+              console.error('Error loading history:', e);
+            }
+          }
+
+          function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            
+            if (historyItems.length === 0) {
+              historyList.innerHTML = `
+                <div class="empty-state">
+                  <i class="fas fa-box-open"></i>
+                  <h4>No history yet</h4>
+                  <p>Cleared items will appear here</p>
+                </div>
+              `;
+              return;
+            }
+
+            // Group items by date
+            const groupedByDate = historyItems.reduce((groups, item) => {
+              const date = new Date(item.clearedAt).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              });
+              
+              if (!groups[date]) {
+                groups[date] = [];
+              }
+              groups[date].push(item);
+              return groups;
+            }, {});
+
+            historyList.innerHTML = Object.entries(groupedByDate).map(([date, items]) => `
+              <div class="history-day">
+                <div class="day-header">
+                  <div class="day-info">
+                    <div class="day-icon">📅</div>
+                    <div class="day-text">
+                      <h4>${date}</h4>
+                      <span class="item-count">${items.length} items</span>
+                    </div>
+                  </div>
+                  <div class="day-total">
+                    UGX ${items.reduce((sum, item) => sum + (item.price || 0), 0).toLocaleString()}
+                  </div>
+                </div>
+                <div class="day-items">
+                  ${items.map(item => `
+                    <div class="history-item-card">
+                      <div class="item-left">
+                        <div class="item-emoji">${getEmojiForCategory(item.category)}</div>
+                        <div class="item-info">
+                          <div class="item-name">${item.name}</div>
+                          <div class="item-details">
+                            <span class="quantity">Qty: ${item.quantity || '1'}</span>
+                            <span class="category">${item.category || 'Other'}</span>
+                            <span class="time">${new Date(item.clearedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="item-price">
+                        UGX ${item.price ? item.price.toLocaleString() : '0'}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('');
+          }
+
+          function getEmojiForCategory(category) {
+            const categoryEmojis = {
+              'fruits': '🍎',
+              'vegetables': '🥕',
+              'dairy': '🥛',
+              'bakery': '🍞',
+              'meat': '🥩',
+              'beverages': '🥤',
+              'snacks': '🍿',
+              'household': '🧼',
+              'other': '📦'
+            };
+            return categoryEmojis[category?.toLowerCase()] || '📦';
+          }
+
+          function updateStats() {
+            const totalCleared = historyItems.length;
+            const totalSpent = historyItems.reduce((sum, item) => sum + (item.price || 0), 0);
+            
+            // Count unique clearing sessions (by date)
+            const uniqueDates = new Set(historyItems.map(item => 
+              new Date(item.clearedAt).toDateString()
+            ));
+            
+            document.getElementById('totalCleared').textContent = uniqueDates.size;
+            document.getElementById('totalSpent').textContent = `UGX ${totalSpent.toLocaleString()}`;
+            document.getElementById('totalHistoryItems').textContent = totalCleared;
+          }
+
+          async function clearAllHistory() {
+            const confirmation = confirm('Are you sure you want to delete ALL history? This action cannot be undone!');
+            
+            if (!confirmation) return;
+
+            try {
+              const response = await fetch('/history/clear-all', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+              });
+
+              const data = await response.json();
+
+              if (data.success) {
+                historyItems = [];
+                renderHistory();
+                updateStats();
+                alert('History cleared successfully!');
+              } else {
+                alert(data.message || 'Failed to clear history');
+              }
+            } catch (error) {
+              console.error('Error:', error);
+              alert('Failed to clear history. Please try again.');
+            }
+          }
+
+          function applyDateFilter() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate && !endDate) {
+              renderHistory();
+              return;
+            }
+            
+            const filtered = historyItems.filter(item => {
+              const itemDate = new Date(item.clearedAt);
+              const start = startDate ? new Date(startDate) : null;
+              const end = endDate ? new Date(endDate + 'T23:59:59') : null;
+              
+              if (start && itemDate < start) return false;
+              if (end && itemDate > end) return false;
+              
+              return true;
+            });
+            
+            renderFilteredHistory(filtered);
+          }
+
+          function resetDateFilter() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            renderHistory();
+          }
+
+          function renderFilteredHistory(filteredItems) {
+            const historyList = document.getElementById('historyList');
+            
+            if (filteredItems.length === 0) {
+              historyList.innerHTML = `
+                <div class="empty-state">
+                  <i class="fas fa-search"></i>
+                  <h4>No items found in selected date range</h4>
+                  <p>Try adjusting your filter criteria</p>
+                </div>
+              `;
+              return;
+            }
+
+            // Group items by date
+            const groupedByDate = filteredItems.reduce((groups, item) => {
+              const date = new Date(item.clearedAt).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              });
+              
+              if (!groups[date]) {
+                groups[date] = [];
+              }
+              groups[date].push(item);
+              return groups;
+            }, {});
+
+            historyList.innerHTML = Object.entries(groupedByDate).map(([date, items]) => `
+              <div class="history-day">
+                <div class="day-header">
+                  <div class="day-info">
+                    <div class="day-icon">📅</div>
+                    <div class="day-text">
+                      <h4>${date}</h4>
+                      <span class="item-count">${items.length} items</span>
+                    </div>
+                  </div>
+                  <div class="day-total">
+                    UGX ${items.reduce((sum, item) => sum + (item.price || 0), 0).toLocaleString()}
+                  </div>
+                </div>
+                <div class="day-items">
+                  ${items.map(item => `
+                    <div class="history-item-card">
+                      <div class="item-left">
+                        <div class="item-emoji">${getEmojiForCategory(item.category)}</div>
+                        <div class="item-info">
+                          <div class="item-name">${item.name}</div>
+                          <div class="item-details">
+                            <span class="quantity">Qty: ${item.quantity || '1'}</span>
+                            <span class="category">${item.category || 'Other'}</span>
+                            <span class="time">${new Date(item.clearedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="item-price">
+                        UGX ${item.price ? item.price.toLocaleString() : '0'}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('');
+          }

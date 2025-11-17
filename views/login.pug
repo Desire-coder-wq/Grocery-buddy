@@ -4,6 +4,7 @@ html
     meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width,initial-scale=1")
     title Login - Grocery Buddy
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css")
     style.
       * {
         margin: 0;
@@ -16,10 +17,50 @@ html
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         min-height: 100vh;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 40px;
+        padding: 0;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .login-container {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+      }
+
+      .image-section {
+        position: absolute;
+        left: -100px;
+        top: 0;
+        height: 100vh;
+        width: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
+
+      .image-section img {
+        width: 120%;
+        height: 100vh;
+        object-fit: cover;
+        border-radius: 0 50px 50px 0;
+      }
+
+      .form-section {
+        position: relative;
+        z-index: 10;
+        margin-left: auto;
+        margin-right: 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        max-width: 500px;
       }
 
       a.back-link {
@@ -53,12 +94,10 @@ html
         margin-bottom: 20px;
         display: none;
         width: 100%;
-        max-width: 450px;
       }
 
       form {
         width: 100%;
-        max-width: 450px;
       }
 
       .form-group {
@@ -79,11 +118,13 @@ html
         border-radius: 8px;
         font-size: 1em;
         transition: border-color 0.3s;
+        background: rgba(255, 255, 255, 0.9);
       }
 
       input:focus {
         outline: none;
         border-color: #667eea;
+        background: #fff;
       }
 
       .remember-forgot {
@@ -154,76 +195,207 @@ html
         text-decoration: underline;
       }
 
-  body
-    a.back-link(href="/") ← Back to Home
-    h2 Welcome Back
-    p.subtitle Login to your account
-    .error-message#errorMessage
-    form#loginForm
-      .form-group
-        label(for="email") Email Address
-        input#email(type="email", name="email", required)
-      .form-group
-        label(for="password") Password
-        input#password(type="password", name="password", required)
-      .remember-forgot
-        label.remember-me
-          input#rememberMe(type="checkbox")
-          span Remember me
-        a.forgot-password(href="#") Forgot password?
-      button.btn#loginBtn(type="submit") Login
-    .register-link
-      | Don't have an account? 
-      a(href="/auth/register") Register here
+      .password-wrapper {
+        position: relative;
+      }
 
-    script.
-      const form = document.getElementById('loginForm');
-      const loginBtn = document.getElementById('loginBtn');
-      const errorMessage = document.getElementById('errorMessage');
+      .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #666;
+      }
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        errorMessage.style.display = 'none';
-
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        const rememberMe = document.getElementById('rememberMe').checked;
-
-        if (!email || !password) {
-          showError('Please fill in all fields');
-          return;
+      @media (max-width: 968px) {
+        body {
+          overflow-y: auto;
+        }
+        
+        .login-container {
+          flex-direction: column;
+          height: auto;
+          min-height: 100vh;
         }
 
-        loginBtn.disabled = true;
-        loginBtn.textContent = 'Logging in...';
+        .image-section {
+          position: relative;
+          left: 0;
+          width: 100%;
+          height: 300px;
+        }
+
+        .image-section img {
+          width: 100%;
+          height: 100%;
+          border-radius: 0 0 30px 30px;
+        }
+
+        .form-section {
+          margin: 40px auto;
+          padding: 0 40px;
+        }
+      }
+
+  body
+    .login-container
+      .image-section
+        img(src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800&q=80", alt="Fresh Groceries")
+      .form-section
+        a.back-link(href="/") Back to Home
+        h2 Welcome Back
+        p.subtitle Login to your account
+        .error-message#errorMessage
+        form#loginForm
+          .form-group
+            label(for="email") Email Address
+            input#email(type="email", name="email", required)
+            span#emailError(style="display: none; color: #ff4444; font-size: 0.8em; margin-top: 4px;")
+          .form-group(style="position: relative;")
+            label(for="password") Password
+            .password-wrapper
+              input#password(type="password", name="password", required, style="padding-right: 40px;")
+              span.toggle-password(onclick="togglePassword()")
+                i.fa.fa-eye-slash
+            span#passwordError(style="display: none; color: #ff4444; font-size: 0.8em; margin-top: 4px;")
+          .remember-forgot
+            label.remember-me
+              input#rememberMe(type="checkbox")
+              span Remember me
+            a.forgot-password(href="#") Forgot password?
+          button.btn(type="submit" onclick="return validateForm()") Login
+        .register-link
+          | Don't have an account? 
+          a(href="/auth/register") Register here
+
+    script.
+      // Show error for a specific field
+      function showError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorElement = document.getElementById(`${fieldId}Error`);
+        if (field && errorElement) {
+          field.style.borderColor = '#ff4444';
+          errorElement.textContent = message;
+          errorElement.style.display = 'block';
+          errorElement.style.color = '#ff4444';
+          errorElement.style.fontSize = '0.8em';
+          errorElement.style.marginTop = '4px';
+        }
+      }
+
+      // Clear error for a specific field
+      function clearError(fieldId) {
+        const field = document.getElementById(fieldId);
+        const errorElement = document.getElementById(`${fieldId}Error`);
+        if (field && errorElement) {
+          field.style.borderColor = '#e0e0e0';
+          errorElement.textContent = '';
+          errorElement.style.display = 'none';
+        }
+      }
+
+      // Validate form fields
+      function validateForm() {
+        let isValid = true;
+        
+        // Clear previous errors
+        clearError('email');
+        clearError('password');
+        
+        // Validate email
+        const email = document.getElementById('email');
+        if (!email.value.trim()) {
+          showError('email', 'Email is required');
+          isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+          showError('email', 'Please enter a valid email address');
+          isValid = false;
+        }
+        
+        // Validate password
+        const password = document.getElementById('password');
+        if (!password.value.trim()) {
+          showError('password', 'Password is required');
+          isValid = false;
+        }
+        
+        return isValid;
+      }
+
+      // Add input event listeners to clear errors when user starts typing
+      document.getElementById('email')?.addEventListener('input', function() {
+        clearError('email');
+        // Re-validate email format as user types
+        const email = this.value.trim();
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showError('email', 'Please enter a valid email address');
+        }
+      });
+      document.getElementById('password')?.addEventListener('input', () => clearError('password'));
+
+      // Toggle password visibility
+      function togglePassword() {
+        const passwordField = document.getElementById('password');
+        const toggleIcon = document.querySelector('.toggle-password i');
+        if (passwordField.type === 'password') {
+          passwordField.type = 'text';
+          toggleIcon.classList.remove('fa-eye-slash');
+          toggleIcon.classList.add('fa-eye');
+        } else {
+          passwordField.type = 'password';
+          toggleIcon.classList.remove('fa-eye');
+          toggleIcon.classList.add('fa-eye-slash');
+        }
+      }
+
+      // Handle form submission
+      document.querySelector('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!validateForm()) {
+          return false;
+        }
+        
+        const formData = new FormData(e.target);
+        const errorMessage = document.getElementById('errorMessage');
         
         try {
           const response = await fetch('/auth/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, rememberMe })
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: formData.get('email'),
+              password: formData.get('password'),
+              rememberMe: formData.get('rememberMe') === 'on'
+            })
           });
-          
+
           const data = await response.json();
           
-          if (data.success) {
-            window.location.href = data.redirect || '/dashboard';
+          if (response.ok) {
+            window.location.href = '/dashboard';
           } else {
-            showError(data.message || 'Login failed. Please try again.');
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Login';
+            errorMessage.textContent = data.message || 'Login failed. Please try again.';
+            errorMessage.style.display = 'block';
+            
+            // Highlight the problematic field from server response
+            if (data.field) {
+              const input = document.querySelector(`[name="${data.field}"]`);
+              if (input) {
+                input.style.borderColor = '#ff4444';
+                input.focus();
+              }
+            }
           }
         } catch (error) {
-          showError('An error occurred. Please try again.');
-          loginBtn.disabled = false;
-          loginBtn.textContent = 'Login';
+          errorMessage.textContent = 'An error occurred. Please try again.';
+          errorMessage.style.display = 'block';
+          console.error('Login error:', error);
         }
       });
-
-      function showError(message) {
-        errorMessage.textContent = message;
-        errorMessage.style.display = 'block';
-      }
 
       window.addEventListener('load', () => {
         fetch('/auth/check-auth')

@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const User = require("../models/UserModel"); // ← ADD THIS LINE!
+const profileRoutes = require("./profileRoutes");
 const { requireAuth } = require("../middleware/auth");
-const User = require("../models/UserModel");
 
 // --- Debug Middleware (logs every dashboard request) ---
 router.use((req, res, next) => {
@@ -80,90 +81,8 @@ router.post("/update-status", requireAuth, async (req, res) => {
   }
 });
 
-// --- Profile Page (requires authentication) ---
-router.get("/profile", requireAuth, async (req, res) => {
-  console.log("\n=== PROFILE ROUTE HIT ===");
-  console.log("Session ID:", req.sessionID);
-  console.log("User ID from session:", req.session.userId);
-
-  // Prevent caching
-  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-
-  try {
-    const user = await User.findById(req.session.userId).select("-password");
-    if (!user) {
-      console.log("No user found. Destroying session.");
-      req.session.destroy();
-      return res.redirect("/auth/login");
-    }
-
-    // Calculate statistics (you can add more complex logic here)
-    const totalItems = 0; // TODO: Add logic to count user's items from database
-    const completedItems = 0; // TODO: Add logic to count completed items
-    const memberSince = user.createdAt.getFullYear();
-
-    res.render("profile", {
-      title: "My Profile - ShopSmart",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        profileImage: user.profileImage || "/uploads/default-avatar.png",
-      },
-      stats: {
-        totalItems,
-        completedItems,
-        memberSince,
-      },
-    });
-  } catch (error) {
-    console.error("Error rendering profile:", error);
-    res.redirect("/dashboard");
-  }
-});
-
-// --- Update Profile Route ---
-router.post("/profile/update", requireAuth, async (req, res) => {
-  try {
-    const { fullName, username, email } = req.body;
-    const user = await User.findById(req.session.userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Update user information
-    if (fullName) user.username = fullName;
-    if (username) user.username = username;
-    if (email) user.email = email;
-
-    // Handle profile image upload if provided
-    if (req.file) {
-      user.profileImage = "/uploads/" + req.file.filename;
-    }
-
-    await user.save();
-
-    res.json({
-      success: true,
-      message: "Profile updated successfully",
-      user: {
-        username: user.username,
-        email: user.email,
-        profileImage: user.profileImage,
-      },
-    });
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error updating profile",
-    });
-  }
-});
+// Use profile routes
+router.use("/profile", profileRoutes);
 
 // --- Change Password Route ---
 router.post("/profile/password", requireAuth, async (req, res) => {
@@ -244,6 +163,42 @@ router.delete("/profile/delete", requireAuth, async (req, res) => {
       success: false,
       message: "Error deleting account",
     });
+  }
+});
+
+router.get("/", requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.session.userId).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/auth/login");
+    }
+
+    const today = new Date();
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    };
+    const currentDate = today.toLocaleDateString("en-US", options);
+
+    res.render("dashboard", {
+      title: "Dashboard - Grocery Buddy",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage || "/uploads/default-avatar.png",
+        status: user.status || "Hey there! I am using Grocery Buddy!",
+      },
+      currentDate, 
+    });
+  } catch (error) {
+    console.error("Error rendering dashboard:", error);
+    req.session.destroy();
+    res.redirect("/auth/login");
   }
 });
 
