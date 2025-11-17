@@ -143,15 +143,15 @@ const authRoutes = require("./routes/registerRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const { userInViews } = require("./middleware/auth");
-// const itemRoutes = require("./routes/itemRoutes");
+const historyRoutes = require("./routes/historyRoutes");
 
 app.use(userInViews);
 app.use("/auth", authRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/dashboard", dashboardRoutes);
+app.use("/history", historyRoutes);
 app.use("/", indexRoutes);
-// app.use("/api/items", itemRoutes);
 
 // Catch-all route handler for undefined routes
 app.use((req, res, next) => {
