@@ -114,7 +114,7 @@ router.post("/profile/password", requireAuth, async (req, res) => {
       });
     }
 
-    // Update password (assuming your User model has password hashing)
+    // Update password (plaintext; model pre-save hook will hash it)
     user.password = newPassword;
     await user.save();
 

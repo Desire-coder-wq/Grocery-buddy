@@ -9,14 +9,23 @@ function isValidObjectId(id) {
 }
 
 // --------------------
-// Helper: Normalize category to title case
+// Helper: Normalize category to match schema enum
 // --------------------
 function normalizeCategory(cat) {
   if (!cat) return 'Other';
-  return cat.toLowerCase()
+  
+  const validCategories = [
+    'Produce', 'Dairy', 'Meat', 'Bakery', 'Frozen', 
+    'Beverages', 'Snacks', 'Other'
+  ];
+  
+  const normalized = cat.toLowerCase()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+  
+  // Return normalized if it's in the enum, otherwise return 'Other'
+  return validCategories.includes(normalized) ? normalized : 'Other';
 }
 
 // --------------------
@@ -25,7 +34,7 @@ function normalizeCategory(cat) {
 exports.getAllItems = async (req, res) => {
   try {
     let items = await Item.find({ user: req.session.userId })
-      .select('name quantity category completed createdAt')
+      .select('name quantity price category completed createdAt')
       .sort({ createdAt: -1 })
       .lean();
     
@@ -72,7 +81,7 @@ exports.getItemById = async (req, res) => {
 // --------------------
 exports.createItem = async (req, res) => {
   try {
-    const { name, quantity, category } = req.body;
+    const { name, quantity, price, category } = req.body;
 
     if (!name || name.trim() === "")
       return res
@@ -82,12 +91,13 @@ exports.createItem = async (req, res) => {
     const newItem = new Item({
       name: name.trim(),
       quantity: quantity ? quantity.trim() : "1",
+      price: price ? parseFloat(price) : 0,
       category: normalizeCategory(category),
       user: req.session.userId,
       completed: false,
     });
     
-    console.log('Creating new item with category:', newItem.category);
+    console.log('Creating new item with category:', newItem.category, 'price:', newItem.price);
 
     await newItem.save();
     res.status(201).json({
@@ -109,7 +119,7 @@ exports.updateItem = async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid item ID" });
 
   try {
-    const { name, quantity, completed, category } = req.body;
+    const { name, quantity, price, completed, category } = req.body;
     const item = await Item.findOne({
       _id: req.params.id,
       user: req.session.userId,
@@ -121,7 +131,8 @@ exports.updateItem = async (req, res) => {
 
     if (name !== undefined && name.trim() !== "") item.name = name.trim();
     if (quantity !== undefined) item.quantity = quantity.trim();
-    if (category !== undefined) item.category = category;
+    if (price !== undefined) item.price = parseFloat(price) || 0;
+    if (category !== undefined) item.category = normalizeCategory(category);
     if (completed !== undefined) item.completed = completed;
 
     await item.save();

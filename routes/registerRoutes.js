@@ -147,16 +147,12 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
     }
 
     // Hash password BEFORE saving
-    console.log("🔐 Hashing password...");
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    console.log("Password hashed successfully");
-
-    // Create new user
+    // Create new user with plaintext password
+    // The UserModel pre-save hook will hash it
     const newUser = new User({
       username: username.trim(),
       email: email.trim().toLowerCase(),
-      password: hashedPassword, // Use the hashed password
+      password: password, // Pass plaintext; model will hash it in pre-save hook
       profileImage: req.file
         ? `/uploads/${req.file.filename}`
         : "/uploads/default-avatar.png",
